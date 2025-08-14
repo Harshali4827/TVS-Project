@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../../css/form.css';
-import { CInputGroup, CInputGroupText, CFormInput } from '@coreui/react';
+import { CInputGroup, CInputGroupText, CFormInput, CFormSelect } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
 import { cilBuilding, cilLocationPin, cilUser } from '@coreui/icons';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -14,6 +14,7 @@ function AddAccessories() {
     name: '',
     description: '',
     price: '',
+    category: '',
     part_number: '',
     applicable_models: [],
     part_number_status: 'active',
@@ -21,6 +22,7 @@ function AddAccessories() {
   });
   const [errors, setErrors] = useState({});
   const [models, setModels] = useState([]);
+  const [categories, setCategories] = useState([]);
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -41,6 +43,20 @@ function AddAccessories() {
     };
 
     fetchModels();
+  }, []);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axiosInstance.get('/accessory-categories');
+        setCategories(response.data.data.categories || []);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        showError(error);
+      }
+    };
+
+    fetchCategories();
   }, []);
 
   const fetchAccessory = async (id) => {
@@ -77,6 +93,7 @@ function AddAccessories() {
 
     if (!formData.name) formErrors.name = 'This field is required';
     if (!formData.price) formErrors.price = 'This field is required';
+    if (!formData.category) formErrors.category = 'This field is required';
     if (formData.applicable_models.length === 0) {
       formErrors.applicable_models = 'Please select at least one compatible model';
     }
@@ -91,6 +108,7 @@ function AddAccessories() {
         name: formData.name,
         description: formData.description,
         price: formData.price,
+        category: formData.category,
         part_number: formData.part_number,
         applicable_models: formData.applicable_models,
         part_number_status: 'active',
@@ -163,7 +181,26 @@ function AddAccessories() {
                 </CInputGroup>
                 {errors.price && <p className="error">{errors.price}</p>}
               </div>
-
+              <div className="input-box">
+                <div className="details-container">
+                  <span className="details">Category</span>
+                  <span className="required">*</span>
+                </div>
+                <CInputGroup>
+                  <CInputGroupText className="input-icon">
+                    <CIcon icon={cilLocationPin} />
+                  </CInputGroupText>
+                  <CFormSelect name="category" value={formData.category} onChange={handleChange}>
+                    <option value="">-Select-</option>
+                    {categories.map((category) => (
+                      <option key={category._id} value={category._id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </CFormSelect>
+                </CInputGroup>
+                {errors.category && <p className="error">{errors.category}</p>}
+              </div>
               <div className="input-box">
                 <span className="details">Part Number</span>
                 <CInputGroup>

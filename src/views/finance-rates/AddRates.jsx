@@ -28,11 +28,18 @@ function AddRates() {
   const fetchFinanceRates = async (id) => {
     try {
       const res = await axiosInstance.get(`/financers/rates/${id}`);
-      setFormData(res.data.data);
+      const rateData = res.data.data;
+
+      setFormData({
+        branchId: rateData.branch,
+        providerId: rateData.financeProvider,
+        gcRate: rateData.gcRate
+      });
     } catch (error) {
       console.error('Error fetching finance rates:', error);
     }
   };
+
   useEffect(() => {
     const fetchBranches = async () => {
       try {
@@ -77,18 +84,22 @@ function AddRates() {
       setErrors(formErrors);
       return;
     }
+    const payload = {
+      ...formData,
+      gcRate: parseFloat(formData.gcRate)
+    };
 
     try {
       if (id) {
-        await axiosInstance.put(`/financers/rates/${id}`, formData);
-        await showFormSubmitToast('Finance rates updated successfully!', () => navigate('/finance-rates/rates-list'));
+        await axiosInstance.put(`/financers/rates/${id}`, payload);
+        await showFormSubmitToast('Finance rates updated successfully!', () => navigate('/financer-rates/rates-list'));
 
-        navigate('/finance-rates/rates-list');
+        navigate('/financer-rates/rates-list');
       } else {
-        await axiosInstance.post('/financers/rates', formData);
-        await showFormSubmitToast('Finance rates added successfully!', () => navigate('/finance-rates/rates-list'));
+        await axiosInstance.post('/financers/rates', payload);
+        await showFormSubmitToast('Finance rates added successfully!', () => navigate('/financer-rates/rates-list'));
 
-        navigate('/finance-rates/rates-list');
+        navigate('/financer-rates/rates-list');
       }
     } catch (error) {
       console.error('Error details:', error);
@@ -97,7 +108,7 @@ function AddRates() {
   };
 
   const handleCancel = () => {
-    navigate('/finance-rates/rates-list');
+    navigate('/financer-rates/rates-list');
   };
   return (
     <div>

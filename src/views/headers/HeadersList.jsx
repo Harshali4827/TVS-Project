@@ -57,10 +57,6 @@ const HeadersList = () => {
     setMenuId(null);
   };
 
-  const handleExcelExport = () => exportToExcel(data, 'HeadersDetails');
-  const handlePdfExport = () =>
-    exportToPdf(data, ['name', 'address', 'city', 'state', 'pincode', 'phone', 'email', 'gst_number'], 'HeadersDetails');
-
   const handleDelete = async (id) => {
     const result = await confirmDelete();
     if (result.isConfirmed) {
@@ -71,7 +67,7 @@ const HeadersList = () => {
         showSuccess();
       } catch (error) {
         console.log(error);
-        showError();
+        showError(error);
       }
     }
   };
@@ -136,7 +132,7 @@ const HeadersList = () => {
                         <Link className="Link" to={`/headers/update-header/${header._id}`}>
                           <MenuItem style={{ color: 'black' }}>Edit</MenuItem>
                         </Link>
-                        {/* <MenuItem onClick={() => handleDelete(header._id)}>Delete</MenuItem> */}
+                        <MenuItem onClick={() => handleDelete(header._id)}>Delete</MenuItem>
                       </Menu>
                     </td>
                   </tr>
@@ -147,60 +143,10 @@ const HeadersList = () => {
         </div>
       </div>
       <PaginationOptions />
-      {/* {csvDialogOpen && (
-  <div className="modal-backdrop">
-    <div className="modal-content">
-      <select
-        value={selectedType}
-        onChange={(e) => setSelectedType(e.target.value)}
-        style={{ padding: '5px', width: '100%', marginBottom: '10px' }}
-      >
-        <option value="">-- Select Model Type --</option>
-        <option value="EV">EV</option>
-        <option value="ICE">ICE</option>
-      </select>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <button onClick={() => setCsvDialogOpen(false)} 
-          className='custom-modal-button custom-modal-button-cancel '
-          >Cancel</button>
-        <button
-          onClick={async () => {
-            if (!selectedType) {
-              showError('Please select a type.');
-              return;
-            }
-            try {
-              const response = await axiosInstance.get(`/csv/export-template?filled=true&type=${selectedType}`, {
-                responseType: 'blob',
-              });
-
-              const url = window.URL.createObjectURL(new Blob([response.data]));
-              const link = document.createElement('a');
-              link.href = url;
-              link.setAttribute('download', `exported_data_${selectedType}.csv`);
-              document.body.appendChild(link);
-              link.click();
-              link.remove();
-              setCsvDialogOpen(false);
-              setSelectedType('');
-            } catch (error) {
-              console.error('CSV export failed:', error);
-              showError('Failed to export CSV.');
-              setCsvDialogOpen(false);
-            }
-          }}
-          className='custom-modal-button custom-modal-button-confirm '
-        >
-          Export
-        </button>
-      </div>
-    </div>
-  </div>
-)} */}
 
       {csvDialogOpen && (
         <div className="modal-backdrop">
-          <div className="modal-content">
+          <div className="header-modal-content">
             <select
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}

@@ -1,0 +1,26 @@
+
+.dashboard-card {
+    height: 80%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .dashboard-card .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .bg-primary.bg-opacity-10 .text-primary,
+  .bg-success.bg-opacity-10 .text-success,
+  .bg-info.bg-opacity-10 .text-info {
+    opacity: 1 !important;
+  }
+
+  .text-uppercase {
+    letter-spacing: 0.5px;
+  }
+  
+  .fw-medium {
+    font-weight: 500;
+  }

@@ -66,7 +66,7 @@ const RtoList = () => {
       fetchData();
     } catch (error) {
       console.error('Error updating RTO status:', error);
-      showError('Failed to update RTO status');
+      showError('Failed to update RTO status', error);
     }
   };
 
@@ -80,7 +80,7 @@ const RtoList = () => {
         showSuccess();
       } catch (error) {
         console.log(error);
-        showError();
+        showError(error);
       }
     }
   };
@@ -126,11 +126,7 @@ const RtoList = () => {
                     <td>{rto?.rto_code || ''}</td>
                     <td>{rto?.rto_name || ''}</td>
                     <td>
-                      <CFormSwitch
-                        // className="custom-switch"
-                        checked={rto.is_active}
-                        onChange={() => handleToggleRtoStatus(rto.id, rto.is_active)}
-                      />
+                      <CFormSwitch checked={rto.is_active} onChange={() => handleToggleRtoStatus(rto.id, rto.is_active)} />
                     </td>
 
                     <td>

@@ -1,18 +1,21 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import '../../css/form.css';
-
 import {
   CInputGroup,
   CInputGroupText,
   CFormInput,
-  CFormSwitch,
+  CButton,
   CTable,
   CTableHead,
   CTableRow,
   CTableHeaderCell,
   CTableBody,
   CTableDataCell,
-  CFormCheck
+  CFormCheck,
+  CButtonGroup,
+  CCol,
+  CRow,
+  CFormSwitch
 } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
 import { cilListRich, cilUser } from '@coreui/icons';
@@ -22,105 +25,150 @@ import { showFormSubmitError, showFormSubmitToast } from 'utils/sweetAlerts';
 import axiosInstance from 'axiosInstance';
 import FormButtons from 'utils/FormButtons';
 
-const MODULES = [
-  'Users',
-  'Role',
-  'Location',
-  'Model',
-  'Accessory',
-  'Headers',
-  'Documents',
-  'Terms & Conditions',
-  'Offers',
-  'Customers',
-  'Quotation'
-];
-
-const ACTIONS = ['create', 'read', 'update', 'delete'];
-
-const slugify = (label) =>
-  label
-    .toLowerCase()
-    .replace(/\s*&\s*/g, ' & ')
-    .replace(/\s+/g, '_')
-    .replace(/&/g, 'and');
-
 function CreateRole() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [permissionsData, setPermissionsData] = useState([]);
+  const [groupedPermissions, setGroupedPermissions] = useState({});
+  const [availableActions, setAvailableActions] = useState([]);
 
-  const initialPermissions = useMemo(() => MODULES.map((m) => ({ resource: slugify(m), actions: [] })), []);
+  const initialPermissions = useMemo(() => {
+    return Object.keys(groupedPermissions).map((module) => ({
+      module,
+      actions: []
+    }));
+  }, [groupedPermissions]);
 
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    permissions: initialPermissions
+    is_active: true,
+    permissions: []
   });
 
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
+    fetchPermissions();
     if (id) fetchRole(id);
   }, [id]);
+  const fetchPermissions = async () => {
+    try {
+      const res = await axiosInstance.get('/permissions');
+      setPermissionsData(res.data.data);
+      const grouped = res.data.data.reduce((acc, permission) => {
+        const module = permission.module;
+        if (!acc[module]) {
+          acc[module] = [];
+        }
+        acc[module].push({
+          action: permission.action,
+          id: permission._id
+        });
+        return acc;
+      }, {});
+
+      setGroupedPermissions(grouped);
+
+      const actions = [...new Set(res.data.data.map((p) => p.action))];
+      setAvailableActions(actions);
+    } catch (error) {
+      console.error('Error fetching permissions:', error);
+    }
+  };
 
   const fetchRole = async (roleId) => {
     try {
       const res = await axiosInstance.get(`/roles/${roleId}`);
       const serverPerms = res.data.data.permissions ?? [];
-      const merged = MODULES.map((m) => {
-        const slug = slugify(m);
-        const found = serverPerms.find((p) => p.resource === slug);
-        return found ? { resource: slug, actions: found.actions } : { resource: slug, actions: [] };
+      if (permissionsData.length === 0) {
+        await fetchPermissions();
+      }
+      const selectedPermissionIds = serverPerms.map((perm) => {
+        if (typeof perm === 'object' && perm._id) {
+          return perm._id;
+        }
+        return perm;
       });
 
       setFormData({
         ...res.data.data,
-        permissions: merged
+        permissions: selectedPermissionIds
       });
     } catch (error) {
       console.error('Error fetching role:', error);
     }
   };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     setErrors((prev) => ({ ...prev, [name]: '' }));
   };
-  const toggleAction = (rowIndex, action) => {
+
+  const toggleAction = (module, action) => {
     setFormData((prev) => {
-      const permissions = [...prev.permissions];
-      const actions = new Set(permissions[rowIndex].actions);
+      const permission = permissionsData.find((p) => p.module === module && p.action === action);
+      let newPermissions = [...prev.permissions];
 
-      actions.has(action) ? actions.delete(action) : actions.add(action);
+      if (permission) {
+        const permIndex = newPermissions.findIndex((p) => p === permission._id);
+        if (permIndex >= 0) {
+          newPermissions.splice(permIndex, 1);
+        } else {
+          newPermissions.push(permission._id);
+        }
+      }
 
-      permissions[rowIndex].actions = Array.from(actions);
-      return { ...prev, permissions };
+      return { ...prev, permissions: newPermissions };
     });
   };
 
-  /* ---------------- validation ------------------------------------- */
+  const handleGlobalAction = (actionType) => {
+    setFormData((prev) => {
+      let newPermissions = [];
+
+      if (actionType === 'none') {
+        return { ...prev, permissions: [] };
+      }
+
+      if (actionType === 'selectAll') {
+        permissionsData.forEach((permission) => {
+          newPermissions.push(permission._id);
+        });
+      }
+
+      if (actionType === 'viewOnly') {
+        permissionsData.forEach((permission) => {
+          if (permission.action === 'READ') {
+            newPermissions.push(permission._id);
+          }
+        });
+      }
+
+      return { ...prev, permissions: newPermissions };
+    });
+  };
+
   const validate = () => {
     const { name, permissions } = formData;
     const errs = {};
 
     if (!name.trim()) errs.name = 'Role name is required';
-    const invalidRows = permissions.filter((p) => !p.actions.length);
-    if (invalidRows.length === permissions.length) errs.permissions = 'Please grant at least one permission';
+    if (permissions.length === 0) errs.permissions = 'Please grant at least one permission';
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
-  /* ---------------- submit ----------------------------------------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    const filteredPermissions = formData.permissions.filter((p) => p.actions.length > 0);
 
     const payload = {
-      ...formData,
-      permissions: filteredPermissions
+      ...formData
     };
+
     try {
       if (id) {
         await axiosInstance.put(`/roles/${id}`, payload);
@@ -136,6 +184,15 @@ function CreateRole() {
   };
 
   const handleCancel = () => navigate('/roles/all-role');
+  const isPermissionEnabled = (module, action) => {
+    const permission = permissionsData.find((p) => p.module === module && p.action === action);
+
+    if (permission && formData.permissions.includes(permission._id)) {
+      return true;
+    }
+
+    return formData.permissions.includes(`${module}.${action}`);
+  };
 
   return (
     <div>
@@ -174,36 +231,62 @@ function CreateRole() {
                   <CFormInput type="text" name="description" value={formData.description} onChange={handleChange} />
                 </CInputGroup>
               </div>
+
+              {/* <div className="input-box">
+                <span className="details">Active Status</span>
+                <CFormSwitch label={isActive ? 'Active' : 'Inactive'} checked={isActive} onChange={toggleActive} />
+              </div> */}
             </div>
 
             {/* ------------ Permissions table ------------- */}
             <div className="permissions-container">
-              <h6 className="mb-3">Permissions</h6>
+              <CRow className="mb-3 align-items-center">
+                <CCol>
+                  <h6 className="mb-0">Permissions</h6>
+                </CCol>
+                <CCol className="text-end">
+                  <CButtonGroup>
+                    <CButton color="secondary" onClick={() => handleGlobalAction('none')} variant="outline">
+                      None
+                    </CButton>
+                    <CButton color="secondary" onClick={() => handleGlobalAction('selectAll')} variant="outline">
+                      Select All
+                    </CButton>
+                    <CButton color="secondary" onClick={() => handleGlobalAction('viewOnly')} variant="outline">
+                      View Only
+                    </CButton>
+                  </CButtonGroup>
+                </CCol>
+              </CRow>
 
               <CTable bordered responsive hover small className="permission-table">
                 <CTableHead color="light">
                   <CTableRow>
                     <CTableHeaderCell scope="col">Module</CTableHeaderCell>
-                    {ACTIONS.map((a) => (
-                      <CTableHeaderCell key={a} scope="col" className="text-center">
-                        {a.charAt(0).toUpperCase() + a.slice(1)}
+                    {availableActions.map((action) => (
+                      <CTableHeaderCell key={action} scope="col" className="text-center">
+                        {action.charAt(0).toUpperCase() + action.slice(1).toLowerCase()}
                       </CTableHeaderCell>
                     ))}
                   </CTableRow>
                 </CTableHead>
 
                 <CTableBody>
-                  {MODULES.map((module, rowIdx) => (
+                  {Object.entries(groupedPermissions).map(([module, actions]) => (
                     <CTableRow key={module}>
                       <CTableHeaderCell scope="row">{module}</CTableHeaderCell>
-                      {ACTIONS.map((action) => (
-                        <CTableDataCell key={action} className="text-center">
-                          <CFormCheck
-                            type="checkbox"
-                            checked={formData.permissions[rowIdx].actions.includes(action)}
-                            onChange={() => toggleAction(rowIdx, action)}
-                            aria-label={`${module}-${action}`}
-                          />
+                      {availableActions.map((action) => (
+                        <CTableDataCell key={`${module}-${action}`} className="text-center">
+                          {actions.some((a) => a.action === action) ? (
+                            <CFormCheck
+                              type="checkbox"
+                              checked={isPermissionEnabled(module, action)}
+                              onChange={() => toggleAction(module, action)}
+                              aria-label={`${module}-${action}`}
+                            />
+                          ) : (
+                            <span>-</span>
+                          )}
                         </CTableDataCell>
                       ))}
                     </CTableRow>

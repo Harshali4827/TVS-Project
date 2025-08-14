@@ -13,7 +13,9 @@ import {
   confirmDelete,
   showError,
   showSuccess,
-  axiosInstance
+  axiosInstance,
+  FaCheckCircle,
+  FaTimesCircle
 } from 'utils/tableImports';
 
 const RatesList = () => {
@@ -57,7 +59,7 @@ const RatesList = () => {
         showSuccess();
       } catch (error) {
         console.log(error);
-        showError();
+        showError(error);
       }
     }
   };
@@ -65,10 +67,14 @@ const RatesList = () => {
     <div className="table-container">
       <div className="table-header">
         <div className="search-icon-data">
-          <input type="text" placeholder="Search.." onChange={(e) => handleFilter(e.target.value, getDefaultSearchFields('financer'))} />
+          <input
+            type="text"
+            placeholder="Search.."
+            onChange={(e) => handleFilter(e.target.value, getDefaultSearchFields('finance_rates'))}
+          />
           <SearchOutlinedIcon />
         </div>
-        <Link to="/finance-rates/add-rates">
+        <Link to="/financer-rates/add-rates">
           <button className="new-user-btn">+ New Rates</button>
         </Link>
       </div>
@@ -78,8 +84,9 @@ const RatesList = () => {
             <thead className="table-header-fixed">
               <tr>
                 <th>Sr.no</th>
-                <th>Name</th>
-                <th>Status</th>
+                <th>Location</th>
+                <th>Financer Name</th>
+                <th>GC Rate</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -94,14 +101,15 @@ const RatesList = () => {
                 currentRecords.map((financer, index) => (
                   <tr key={index}>
                     <td>{index + 1}</td>
-                    <td>{financer.name}</td>
-                    <td>{financer.is_active}</td>
+                    <td>{financer.branchDetails.name}</td>
+                    <td>{financer.financeProviderDetails.name}</td>
+                    <td>{financer.gcRate}</td>
                     <td>
                       <button className="action-button" onClick={(event) => handleClick(event, financer.id)}>
                         Action
                       </button>
                       <Menu id={`action-menu-${financer.id}`} anchorEl={anchorEl} open={menuId === financer.id} onClose={handleClose}>
-                        <Link className="Link" to={`/financer/update-financer/${financer.id}`}>
+                        <Link className="Link" to={`/financer-rates/update-rates/${financer.id}`}>
                           <MenuItem>Edit</MenuItem>
                         </Link>
                         <MenuItem onClick={() => handleDelete(financer.id)}>Delete</MenuItem>

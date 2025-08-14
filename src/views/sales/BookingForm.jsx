@@ -39,14 +39,13 @@ function BookingForm() {
     // Tab 1
     model_id: '',
     model_color: '',
-    customer_type: '',
+    customer_type: 'B2C',
     rto_type: 'MH',
     branch: '',
     optionalComponents: [],
     sales_executive: '',
     gstin: '',
     rtoAmount: '',
-
     salutation: '',
     name: '',
     pan_no: '',
@@ -62,22 +61,16 @@ function BookingForm() {
     nomineeName: '',
     nomineeRelation: '',
     nomineeAge: '',
-
-    // booking_date: new Date().toISOString().split('T')[0],
-
     type: 'cash',
     financer_id: '',
     scheme: '',
     emi_plan: '',
     gcApplicable: false,
     gcAmount: '',
-
     discountType: 'fixed',
     value: 0,
-
     selected_accessories: [],
     hpa: true,
-
     is_exchange: false,
     broker_id: '',
     exchange_price: '',
@@ -87,6 +80,7 @@ function BookingForm() {
 
   const [errors, setErrors] = useState({});
   const [models, setModels] = useState([]);
+  const [filteredModels, setFilteredModels] = useState([]);
   const [colors, setColors] = useState([]);
   const [branches, setBranches] = useState([]);
   const [brokers, setBrokers] = useState([]);
@@ -100,15 +94,280 @@ function BookingForm() {
   const [accessories, setAccessories] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [financerGcRates, setFinancerGcRates] = useState([]);
+  const [selectedGcRate, setSelectedGcRate] = useState('');
+  const [isEditMode, setIsEditMode] = useState(false);
+
   const navigate = useNavigate();
   const { id } = useParams();
+
+  useEffect(() => {
+    if (id) {
+      fetchBookingDetails(id);
+      setIsEditMode(true);
+    }
+  }, [id]);
+
+  const fetchBookingDetails = async (bookingId) => {
+    try {
+      const response = await axiosInstance.get(`/bookings/${bookingId}`);
+      const bookingData = response.data.data;
+
+      // Transform the API data to match your form structure
+      setFormData({
+        // Tab 1
+        model_id: bookingData.model.id,
+        model_color: bookingData.color.id,
+        customer_type: bookingData.customerType,
+        rto_type: bookingData.rto,
+        branch: bookingData.branch._id,
+        optionalComponents: bookingData.priceComponents.map((pc) => pc.header._id),
+        sales_executive: bookingData.salesExecutive._id,
+        gstin: bookingData.gstin || '',
+        rtoAmount: bookingData.rtoAmount || '',
+
+        // Customer Details
+        salutation: bookingData.customerDetails.salutation,
+        name: bookingData.customerDetails.name,
+        pan_no: bookingData.customerDetails.panNo,
+        dob: bookingData.customerDetails.dob.split('T')[0],
+        occupation: bookingData.customerDetails.occupation,
+        address: bookingData.customerDetails.address,
+        taluka: bookingData.customerDetails.taluka,
+        district: bookingData.customerDetails.district,
+        pincode: bookingData.customerDetails.pincode,
+        mobile1: bookingData.customerDetails.mobile1,
+        mobile2: bookingData.customerDetails.mobile2 || '',
+        aadhar_number: bookingData.customerDetails.aadharNumber,
+        nomineeName: bookingData.customerDetails.nomineeName || '',
+        nomineeRelation: bookingData.customerDetails.nomineeRelation || '',
+        nomineeAge: bookingData.customerDetails.nomineeAge || '',
+
+        // Payment Details
+        type: bookingData.payment.type.toLowerCase(),
+        financer_id: bookingData.payment.financer?._id || '',
+        scheme: bookingData.payment.scheme || '',
+        emi_plan: bookingData.payment.emiPlan || '',
+        gcApplicable: bookingData.payment.gcApplicable || false,
+        gcAmount: bookingData.payment.gcAmount || '',
+
+        // Discount
+        discountType: bookingData.discounts[0]?.type.toLowerCase() || 'fixed',
+        value: bookingData.discounts[0]?.amount || 0,
+
+        // Accessories
+        selected_accessories: bookingData.accessories.map((a) => a.accessory?._id).filter(Boolean),
+
+        // Exchange
+        hpa: bookingData.hpa,
+        is_exchange: bookingData.exchange ? 'true' : 'false',
+        broker_id: bookingData.exchangeDetails?.broker?._id || '',
+        exchange_price: bookingData.exchangeDetails?.price || '',
+        vehicle_number: bookingData.exchangeDetails?.vehicleNumber || '',
+        chassis_number: bookingData.exchangeDetails?.chassisNumber || ''
+      });
+
+      // Set additional state based on fetched data
+      setSelectedBranchName(bookingData.branch.name);
+      setModelDetails(bookingData.model);
+      setAccessoriesTotal(bookingData.accessoriesTotal);
+
+      // Fetch related data needed for the form
+      fetchModels(bookingData.customerType);
+      fetchModelHeaders(bookingData.model.id);
+      fetchAccessories(bookingData.model.id);
+      fetchModelColors(bookingData.model.id);
+    } catch (error) {
+      console.error('Error fetching booking details:', error);
+      showFormSubmitError('Failed to load booking details');
+    }
+  };
+
+  const validateTab1 = () => {
+    const requiredFields = ['customer_type', 'model_id', 'branch'];
+    const newErrors = {};
+
+    requiredFields.forEach((field) => {
+      if (!formData[field]) {
+        newErrors[field] = 'This field is required';
+      }
+    });
+    if (formData.customer_type === 'B2B' && !formData.gstin) {
+      newErrors.gstin = 'GSTIN is required for B2B customers';
+    }
+
+    if ((formData.rto_type === 'BH' || formData.rto_type === 'CRTM') && !formData.rtoAmount) {
+      newErrors.rtoAmount = 'RTO amount is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateTab2 = () => {
+    const requiredFields = ['model_color', 'sales_executive'];
+    const newErrors = {};
+
+    requiredFields.forEach((field) => {
+      if (!formData[field]) {
+        newErrors[field] = 'This field is required';
+      }
+    });
+    if (salesExecutives.length === 0 && formData.branch) {
+      newErrors.sales_executive = 'No sales executives available for this branch';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateTab4 = () => {
+    const newErrors = {};
+
+    if (!formData.type) {
+      newErrors.type = 'Payment type is required';
+    }
+
+    if (formData.is_exchange === 'true') {
+      const exchangeFields = ['broker_id', 'exchange_price', 'vehicle_number', 'chassis_number'];
+      exchangeFields.forEach((field) => {
+        if (!formData[field]) {
+          newErrors[field] = 'This field is required for exchange';
+        }
+      });
+      if (brokers.length === 0) {
+        newErrors.broker_id = 'No brokers available for this branch';
+      }
+    }
+    if (formData.type === 'finance') {
+      const financeFields = ['financer_id', 'scheme', 'emi_plan'];
+      financeFields.forEach((field) => {
+        if (!formData[field]) {
+          newErrors[field] = 'This field is required for finance';
+        }
+      });
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  const validateTab6 = () => {
+    const newErrors = {};
+    if (formData.value === '' || formData.value === null || formData.value === undefined) {
+      newErrors.value = 'Discount value is required';
+    } else if (isNaN(formData.value) || Number(formData.value) < 0) {
+      newErrors.value = 'Discount must be a positive number';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  const validateMobileNumber = (mobile) => {
+    const regex = /^[6-9]\d{9}$/;
+    return regex.test(mobile);
+  };
+
+  const validatePAN = (pan) => {
+    const regex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+    return regex.test(pan);
+  };
+
+  const validateAadhar = (aadhar) => {
+    const regex = /^\d{12}$/;
+    return regex.test(aadhar);
+  };
+
+  const handleNextTab = () => {
+    if (activeTab === 1) {
+      if (!validateTab1()) {
+        return;
+      }
+    } else if (activeTab === 2) {
+      if (!validateTab2()) {
+        return;
+      }
+    } else if (activeTab === 3) {
+      const newErrors = {};
+      const requiredFields = [
+        'salutation',
+        'name',
+        'address',
+        'mobile1',
+        'aadhar_number',
+        'pan_no',
+        'dob',
+        'occupation',
+        'taluka',
+        'district',
+        'pincode',
+        'nomineeName',
+        'nomineeRelation',
+        'nomineeAge'
+      ];
+
+      requiredFields.forEach((field) => {
+        if (!formData[field]) {
+          newErrors[field] = 'This field is required';
+        }
+      });
+
+      if (formData.mobile1 && !validateMobileNumber(formData.mobile1)) {
+        newErrors.mobile1 = 'Invalid mobile number';
+      }
+      if (formData.mobile2 && !validateMobileNumber(formData.mobile2)) {
+        newErrors.mobile2 = 'Invalid mobile number';
+      }
+      if (formData.pan_no && !validatePAN(formData.pan_no)) {
+        newErrors.pan_no = 'Invalid PAN number';
+      }
+      if (formData.aadhar_number && !validateAadhar(formData.aadhar_number)) {
+        newErrors.aadhar_number = 'Invalid Aadhar number';
+      }
+
+      setErrors(newErrors);
+      if (Object.keys(newErrors).length > 0) {
+        const firstErrorField = Object.keys(newErrors)[0];
+        document.querySelector(`[name="${firstErrorField}"]`)?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+        return;
+      }
+    } else if (activeTab === 4) {
+      if (!validateTab4()) {
+        const firstErrorField = Object.keys(errors)[0];
+        if (firstErrorField) {
+          document.querySelector(`[name="${firstErrorField}"]`)?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+        }
+        return;
+      }
+    } else if (activeTab === 6) {
+      if (!validateTab6()) {
+        const firstErrorField = Object.keys(errors)[0];
+        if (firstErrorField) {
+          document.querySelector(`[name="${firstErrorField}"]`)?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+          });
+        }
+        return;
+      }
+    }
+    // setActiveTab((prev) => prev + 1);
+    if (activeTab < 6) {
+      setActiveTab((prev) => prev + 1);
+    }
+  };
 
   useEffect(() => {
     if (id) {
       fetchCustomer(id);
     }
   }, [id]);
-
+  useEffect(() => {
+    fetchModels('B2C');
+  }, []);
   const fetchCustomer = async (id) => {
     try {
       const res = await axiosInstance.get(`/accessories/${id}`);
@@ -118,17 +377,17 @@ function BookingForm() {
     }
   };
 
-  useEffect(() => {
-    const fetchModels = async () => {
-      try {
-        const response = await axiosInstance.get('/models');
-        setModels(response.data.data.models);
-      } catch (error) {
-        console.error('Failed to fetch models:', error);
-      }
-    };
-    fetchModels();
-  }, []);
+  const fetchModels = async (customerType = 'B2C') => {
+    try {
+      const endpoint = customerType ? `/models?customerType=${customerType}` : '/models';
+
+      const response = await axiosInstance.get(endpoint);
+      setModels(response.data.data.models);
+      setFilteredModels(response.data.data.models);
+    } catch (error) {
+      console.error('Failed to fetch models:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchBranches = async () => {
@@ -142,18 +401,61 @@ function BookingForm() {
     };
     fetchBranches();
   }, []);
+
+  // useEffect(() => {
+  //   const fetchSalesExecutive = async () => {
+  //     try {
+  //       const response = await axiosInstance.get('/users');
+  //       const filteredExecutives = formData.branch
+  //         ? response.data.data.filter(
+  //             (user) =>
+  //               user.branch === formData.branch &&
+  //               user.roles.some((role) => role.name === 'SALES_EXECUTIVE' || role.name === 'Sales Executive') &&
+  //               user.isActive === true
+  //           )
+  //         : [];
+  //       setSalesExecutives(filteredExecutives);
+  //       if (formData.branch && filteredExecutives.length === 0) {
+  //         setErrors((prev) => ({
+  //           ...prev,
+  //           sales_executive: 'No sales executives available for this branch'
+  //         }));
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching sales executive:', error);
+  //       showFormSubmitError(error.message);
+  //     }
+  //   };
+  //   fetchSalesExecutive();
+  // }, [formData.branch]);
+
   useEffect(() => {
     const fetchSalesExecutive = async () => {
       try {
         const response = await axiosInstance.get('/users');
-        setSalesExecutives(response.data.data || []);
+        const filteredExecutives = formData.branch
+          ? response.data.data.filter(
+              (user) =>
+                user.branch === formData.branch &&
+                user.roles.some((role) => role.name === 'SALES_EXECUTIVE' || role.name === 'Sales Executive') &&
+                user.isActive === true &&
+                user.isFrozen === false
+            )
+          : [];
+        setSalesExecutives(filteredExecutives);
+        if (formData.branch && filteredExecutives.length === 0) {
+          setErrors((prev) => ({
+            ...prev,
+            sales_executive: 'No active, unfrozen sales executives available for this branch'
+          }));
+        }
       } catch (error) {
         console.error('Error fetching sales executive:', error);
         showFormSubmitError(error.message);
       }
     };
     fetchSalesExecutive();
-  }, []);
+  }, [formData.branch]);
 
   const fetchModelHeaders = async (modelId) => {
     try {
@@ -163,8 +465,6 @@ function BookingForm() {
 
       const accessoriesTotal = calculateAccessoriesTotal(response.data.data.model.prices);
       setAccessoriesTotal(accessoriesTotal);
-
-      // Fetch colors for this model
       fetchModelColors(modelId);
     } catch (error) {
       console.error('Failed to fetch model headers:', error);
@@ -174,6 +474,36 @@ function BookingForm() {
     }
   };
 
+  useEffect(() => {
+    if (formData.type === 'finance' && formData.financer_id && formData.gcApplicable === true) {
+      const fetchFinancerGcRates = async () => {
+        try {
+          const response = await axiosInstance.get(`/financers/providers/${formData.financer_id}/rates`);
+          const rates = response.data.data.rates.map((rate) => ({
+            id: rate._id,
+            gcRate: rate.gcRate
+          }));
+          setFinancerGcRates(rates);
+        } catch (error) {
+          console.error('Error fetching financer GC rates:', error);
+          setFinancerGcRates([]);
+        }
+      };
+      fetchFinancerGcRates();
+    } else {
+      setFinancerGcRates([]);
+      setSelectedGcRate('');
+    }
+  }, [formData.financer_id, formData.type, formData.gcApplicable]);
+
+  const handleGcRateChange = (e) => {
+    const gcRateValue = e.target.value;
+    setSelectedGcRate(gcRateValue);
+    setFormData((prev) => ({
+      ...prev,
+      gcAmount: gcRateValue
+    }));
+  };
   const calculateAccessoriesTotal = (prices) => {
     if (!prices || !Array.isArray(prices)) return 0;
     const accessoriesTotalHeader = prices.find((item) => item.header_key === 'ACCESSORIES TOTAL');
@@ -200,18 +530,60 @@ function BookingForm() {
     }
   };
 
+  // useEffect(() => {
+  //   const fetchBrokers = async () => {
+  //     try {
+  //       if (!formData.branch) {
+  //         setBrokers([]);
+  //         return;
+  //       }
+
+  //       const response = await axiosInstance.get(`/brokers/branch/${formData.branch}`);
+  //       setBrokers(response.data.data || []);
+
+  //       if (response.data.data.length === 0) {
+  //         setErrors((prev) => ({
+  //           ...prev,
+  //           broker_id: 'No brokers available for this branch'
+  //         }));
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching brokers:', error);
+  //       showFormSubmitError(error.message);
+  //       setBrokers([]);
+  //     }
+  //   };
+
+  //   fetchBrokers();
+  // }, [formData.branch]);
+
   useEffect(() => {
     const fetchBrokers = async () => {
       try {
-        const response = await axiosInstance.get('/brokers');
+        if (!formData.branch) {
+          setBrokers([]);
+          return;
+        }
+
+        const response = await axiosInstance.get(`/brokers/branch/${formData.branch}`);
         setBrokers(response.data.data || []);
+
+        if (response.data.data.length === 0) {
+          setErrors((prev) => ({
+            ...prev,
+            broker_id: 'No brokers available for this branch'
+          }));
+        }
       } catch (error) {
-        console.error('Error fetching broker:', error);
+        console.error('Error fetching brokers:', error);
         showFormSubmitError(error.message);
+        setBrokers([]);
       }
     };
-    fetchBrokers();
-  }, []);
+    if (formData.branch && formData.is_exchange === 'true') {
+      fetchBrokers();
+    }
+  }, [formData.branch, formData.is_exchange]);
 
   useEffect(() => {
     const fetchFinancer = async () => {
@@ -230,7 +602,14 @@ function BookingForm() {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
     setErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
-
+    if (name === 'customer_type') {
+      fetchModels(value);
+      setFormData((prev) => ({
+        ...prev,
+        model_id: '',
+        model_name: ''
+      }));
+    }
     if (name === 'model_id') {
       fetchModelHeaders(value);
       fetchAccessories(value);
@@ -280,7 +659,6 @@ function BookingForm() {
     e.preventDefault();
     setIsSubmitting(true);
     console.log('Form data:', formData);
-    // Validate required fields
     const requiredFields = ['model_id', 'model_color', 'branch', 'customer_type', 'name', 'address', 'mobile1', 'aadhar_number', 'pan_no'];
 
     let formErrors = {};
@@ -290,7 +668,6 @@ function BookingForm() {
       }
     });
 
-    // Additional validation for B2B customers
     if (formData.customer_type === 'B2B' && !formData.gstin) {
       formErrors.gstin = 'GSTIN is required for B2B customers';
     }
@@ -298,8 +675,6 @@ function BookingForm() {
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       setIsSubmitting(false);
-
-      // Scroll to first error
       const firstErrorField = Object.keys(formErrors)[0];
       document.querySelector(`[name="${firstErrorField}"]`)?.scrollIntoView({
         behavior: 'smooth',
@@ -308,16 +683,14 @@ function BookingForm() {
       return;
     }
 
-    // Prepare the API request body
     const requestBody = {
       model_id: formData.model_id,
-      // model_color: colors.find((c) => c.name === formData.model_color)?._id,
       model_color: formData.model_color,
       customer_type: formData.customer_type,
       rto_type: formData.rto_type,
       branch: formData.branch,
       optionalComponents: formData.optionalComponents,
-      sales_executive: formData.sales_executive, // Make sure this is included
+      sales_executive: formData.sales_executive,
       customer_details: {
         salutation: formData.salutation,
         name: formData.name,
@@ -354,8 +727,8 @@ function BookingForm() {
       },
       hpa: formData.hpa === true,
       exchange: {
-        is_exchange: formData.is_exchange === false,
-        ...(formData.is_exchange === false && {
+        is_exchange: formData.is_exchange === 'true',
+        ...(formData.is_exchange === 'true' && {
           broker_id: formData.broker_id,
           exchange_price: formData.exchange_price ? parseFloat(formData.exchange_price) : 0,
           vehicle_number: formData.vehicle_number || '',
@@ -363,13 +736,9 @@ function BookingForm() {
         })
       }
     };
-
-    // Add GSTIN if customer is B2B
     if (formData.customer_type === 'B2B') {
       requestBody.gstin = formData.gstin;
     }
-
-    // Add RTO amount if applicable
     if (formData.rto_type === 'BH' || formData.rto_type === 'CRTM') {
       requestBody.rtoAmount = formData.rtoAmount;
     }
@@ -377,13 +746,28 @@ function BookingForm() {
     console.log('Request payload:', JSON.stringify(requestBody, null, 2));
 
     try {
-      const response = await axiosInstance.post('/bookings', requestBody);
-      console.log('API response:', response);
-      if (response.data.success) {
-        await showFormSubmitToast('Booking created successfully!', () => navigate('/bookings'));
-        navigate('/bookings');
+      // const response = await axiosInstance.post('/bookings', requestBody);
+      // console.log('API response:', response);
+      // if (response.data.success) {
+      //   await showFormSubmitToast('Booking created successfully!', () => navigate('/booking-list'));
+      //   navigate('/booking-list');
+      // } else {
+      //   console.error('Submission failed:', response.data);
+      //   showFormSubmitError(response.data.message || 'Submission failed');
+      // }
+      let response;
+      if (isEditMode) {
+        response = await axiosInstance.put(`/bookings/${id}`, requestBody);
       } else {
-        console.error('Submission failed:', response.data);
+        response = await axiosInstance.post('/bookings', requestBody);
+      }
+
+      if (response.data.success) {
+        const successMessage = isEditMode ? 'Booking updated successfully!' : 'Booking created successfully!';
+
+        await showFormSubmitToast(successMessage, () => navigate('/booking-list'));
+        navigate('/booking-list');
+      } else {
         showFormSubmitError(response.data.message || 'Submission failed');
       }
     } catch (error) {
@@ -409,7 +793,7 @@ function BookingForm() {
 
   return (
     <div>
-      <h4>Booking Form</h4>
+      <h4>{isEditMode ? 'Edit Booking' : 'Create New Booking'}</h4>
       <div className="form-container">
         <div className="page-header">
           <form onSubmit={handleSubmit} id="bookingForm">
@@ -420,6 +804,26 @@ function BookingForm() {
             {activeTab === 1 && (
               <>
                 <div className="user-details">
+                  <div className="input-box">
+                    <div className="details-container">
+                      <span className="details">Customer Type</span>
+                      <span className="required">*</span>
+                    </div>
+                    <CInputGroup>
+                      <CInputGroupText className="input-icon">
+                        <CIcon icon={cilUser} />
+                      </CInputGroupText>
+                      <CFormSelect name="customer_type" value={formData.customer_type} onChange={handleChange}>
+                        <option value="">-Select-</option>
+                        <option value="B2B">B2B</option>
+                        <option value="B2C" selected>
+                          B2C
+                        </option>
+                        <option value="CSD">CSD</option>
+                      </CFormSelect>
+                    </CInputGroup>
+                    {errors.customer_type && <p className="error">{errors.customer_type}</p>}
+                  </div>
                   <div className="input-box">
                     <div className="details-container">
                       <span className="details">Model Name</span>
@@ -468,20 +872,6 @@ function BookingForm() {
                       </CFormSelect>
                     </CInputGroup>
                     {errors.branch && <p className="error">{errors.branch}</p>}
-                  </div>
-
-                  <div className="input-box">
-                    <span className="details">Customer Type</span>
-                    <CInputGroup>
-                      <CInputGroupText className="input-icon">
-                        <CIcon icon={cilUser} />
-                      </CInputGroupText>
-                      <CFormSelect name="customer_type" value={formData.customer_type} onChange={handleChange}>
-                        <option value="">-Select-</option>
-                        <option value="B2B">B2B</option>
-                        <option value="B2C">B2C</option>
-                      </CFormSelect>
-                    </CInputGroup>
                   </div>
 
                   {formData.customer_type === 'B2B' && (
@@ -546,7 +936,6 @@ function BookingForm() {
                   </div>
                 </div>
 
-                {/* Model Headers Section */}
                 {selectedModelHeaders.length > 0 && (
                   <div className="model-headers-section">
                     <h5>Model Options</h5>
@@ -555,18 +944,19 @@ function BookingForm() {
                         <div key={header.header_id} className="header-item">
                           <CFormCheck
                             id={`header-${header.header_id}`}
-                            label={`${header.header_key}`}
-                            checked={formData.optionalComponents.includes(header.header_id)}
-                            onChange={(e) => handleHeaderSelection(header.header_id, e.target.checked)}
+                            label={`${header.header_key} ${header.is_mandatory ? '(Mandatory)' : ''}`}
+                            checked={header.is_mandatory || formData.optionalComponents.includes(header.header_id)}
+                            onChange={(e) => !header.is_mandatory && handleHeaderSelection(header.header_id, e.target.checked)}
                             disabled={header.is_mandatory}
                           />
+                          {header.is_mandatory && <input type="hidden" name={`mandatory-${header.header_id}`} value={header.header_id} />}
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
                 <div className="booking-button-row">
-                  <button type="button" className="btn btn-primary" onClick={() => setActiveTab(2)}>
+                  <button type="button" className="btn btn-primary" onClick={handleNextTab}>
                     Next
                   </button>
                 </div>
@@ -575,7 +965,7 @@ function BookingForm() {
             {activeTab === 2 && (
               <>
                 <div className="user-details">
-                  <div className="input-box">
+                  {/* <div className="input-box">
                     <div className="details-container">
                       <span className="details">Vehicle Model</span>
                       <span className="required">*</span>
@@ -586,10 +976,34 @@ function BookingForm() {
                       </CInputGroupText>
                       <CFormInput type="text" name="model_id" value={formData.model_name || ''} onChange={handleChange} />
                     </CInputGroup>
-                  </div>
+                  </div> */}
 
                   <div className="input-box">
-                    <span className="details">Color</span>
+                    <div className="details-container">
+                      <span className="details">Vehicle Model</span>
+                      <span className="required">*</span>
+                    </div>
+                    <CInputGroup>
+                      <CInputGroupText className="input-icon">
+                        <CIcon icon={cilBike} />
+                      </CInputGroupText>
+
+                      <CFormSelect name="model_id" value={formData.model_id} onChange={handleChange} disabled={isEditMode}>
+                        <option value="">- Select a Model -</option>
+                        {models.map((model) => (
+                          <option key={model._id} value={model._id}>
+                            {model.model_name}
+                          </option>
+                        ))}
+                      </CFormSelect>
+                    </CInputGroup>
+                    {errors.model_id && <p className="error">{errors.model_id}</p>}
+                  </div>
+                  <div className="input-box">
+                    <div className="details-container">
+                      <span className="details">Color</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilPaint} />
@@ -604,6 +1018,7 @@ function BookingForm() {
                         ))}
                       </CFormSelect>
                     </CInputGroup>
+                    {errors.model_color && <p className="error">{errors.model_color}</p>}
                   </div>
 
                   <div className="input-box">
@@ -620,44 +1035,42 @@ function BookingForm() {
                   </div>
 
                   <div className="input-box">
-                    <span className="details">Sales Executive</span>
+                    <div className="details-container">
+                      <span className="details">Sales Executive</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilUser} />
                       </CInputGroupText>
-                      {/* <CFormSelect name="sales_executive" value={formData.sales_executive || ''} onChange={handleChange}>
+                      <CFormSelect
+                        name="sales_executive"
+                        value={formData.sales_executive || ''}
+                        onChange={handleChange}
+                        disabled={salesExecutives.length === 0}
+                      >
                         <option value="">-Select-</option>
-                        <option value="John Doe">John Doe</option>
-                        <option value="Ravi Patel">Ravi Patel</option>
-                        <option value="Sara Khan">Sara Khan</option>
-                      </CFormSelect> */}
-                      <CFormSelect name="sales_executive" value={formData.sales_executive || ''} onChange={handleChange}>
-                        <option value="">-Select-</option>
-                        {salesExecutives.map((sales) => (
-                          <option key={sales._id} value={sales._id}>
-                            {' '}
-                            {sales.name}
+                        {salesExecutives.length > 0 ? (
+                          salesExecutives.map((sales) => (
+                            <option key={sales._id} value={sales._id}>
+                              {sales.name}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="" disabled>
+                            No sales executives available for this branch
                           </option>
-                        ))}
+                        )}
                       </CFormSelect>
                     </CInputGroup>
+                    {errors.sales_executive && <p className="error">{errors.sales_executive}</p>}
                   </div>
-
-                  {/* <div className="input-box">
-                    <span className="details">Dealer / Sub-dealer</span>
-                    <CInputGroup>
-                      <CInputGroupText className="input-icon">
-                        <CIcon icon={cilFactory} />
-                      </CInputGroupText>
-                      <CFormInput value={selectedBranchName} readOnly disabled />
-                    </CInputGroup>
-                  </div> */}
                 </div>
                 <div className="booking-button-row">
                   <button type="button" className="btn btn-secondary" onClick={() => setActiveTab(1)}>
                     Back
                   </button>
-                  <button type="button" className="btn btn-primary" onClick={() => setActiveTab(3)}>
+                  <button type="button" className="btn btn-primary" onClick={handleNextTab}>
                     Next
                   </button>
                 </div>
@@ -667,7 +1080,10 @@ function BookingForm() {
               <>
                 <div className="user-details">
                   <div className="input-box">
-                    <span className="details">Salutation</span>
+                    <div className="details-container">
+                      <span className="details">Salutation</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilUser} />
@@ -679,66 +1095,91 @@ function BookingForm() {
                         <option value="Miss">Miss</option>
                       </CFormSelect>
                     </CInputGroup>
+                    {errors.salutation && <p className="error">{errors.salutation}</p>}
                   </div>
 
                   <div className="input-box">
-                    <span className="details">Full Name</span>
+                    <div className="details-container">
+                      <span className="details">Full Name</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilUser} />
                       </CInputGroupText>
                       <CFormInput name="name" value={formData.name} onChange={handleChange} />
                     </CInputGroup>
+                    {errors.name && <p className="error">{errors.name}</p>}
                   </div>
 
                   <div className="input-box">
-                    <span className="details">Address</span>
+                    <div className="details-container">
+                      <span className="details">Address</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilHome} />
                       </CInputGroupText>
                       <CFormInput name="address" value={formData.address} onChange={handleChange} />
                     </CInputGroup>
+                    {errors.address && <p className="error">{errors.address}</p>}
                   </div>
 
                   <div className="input-box">
-                    <span className="details">Taluka</span>
+                    <div className="details-container">
+                      <span className="details">Taluka</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilMap} />
                       </CInputGroupText>
                       <CFormInput name="taluka" value={formData.taluka} onChange={handleChange} />
                     </CInputGroup>
+                    {errors.taluka && <p className="error">{errors.taluka}</p>}
                   </div>
 
                   <div className="input-box">
-                    <span className="details">District</span>
+                    <div className="details-container">
+                      <span className="details">District</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilMap} />
                       </CInputGroupText>
                       <CFormInput name="district" value={formData.district} onChange={handleChange} />
                     </CInputGroup>
+                    {errors.district && <p className="error">{errors.district}</p>}
                   </div>
 
                   <div className="input-box">
-                    <span className="details">Pin Code</span>
+                    <div className="details-container">
+                      <span className="details">Pin Code</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilEnvelopeClosed} />
                       </CInputGroupText>
                       <CFormInput name="pincode" value={formData.pincode} onChange={handleChange} />
                     </CInputGroup>
+                    {errors.pincode && <p className="error">{errors.pincode}</p>}
                   </div>
 
                   <div className="input-box">
-                    <span className="details">Contact Number</span>
+                    <div className="details-container">
+                      <span className="details">Contact Number</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilPhone} />
                       </CInputGroupText>
                       <CFormInput name="mobile1" value={formData.mobile1} onChange={handleChange} />
                     </CInputGroup>
+                    {errors.mobile1 && <p className="error">{errors.mobile1}</p>}
                   </div>
 
                   <div className="input-box">
@@ -752,17 +1193,24 @@ function BookingForm() {
                   </div>
 
                   <div className="input-box">
-                    <span className="details">Aadhaar Number</span>
+                    <div className="details-container">
+                      <span className="details">Aadhaar Number</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilFingerprint} />
                       </CInputGroupText>
                       <CFormInput name="aadhar_number" value={formData.aadhar_number} onChange={handleChange} />
                     </CInputGroup>
+                    {errors.aadhar_number && <p className="error">{errors.aadhar_number}</p>}
                   </div>
 
                   <div className="input-box">
-                    <span className="details">PAN Number</span>
+                    <div className="details-container">
+                      <span className="details">PAN Number</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilCreditCard} />
@@ -773,17 +1221,24 @@ function BookingForm() {
                   </div>
 
                   <div className="input-box">
-                    <span className="details">Birth Date</span>
+                    <div className="details-container">
+                      <span className="details">Birth Date</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilCalendar} />
                       </CInputGroupText>
                       <CFormInput type="date" name="dob" value={formData.dob} onChange={handleChange} />
                     </CInputGroup>
+                    {errors.dob && <p className="error">{errors.dob}</p>}
                   </div>
 
                   <div className="input-box">
-                    <span className="details">Occupation</span>
+                    <div className="details-container">
+                      <span className="details">Occupation</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilBriefcase} />
@@ -796,36 +1251,49 @@ function BookingForm() {
                         <option value="Farmer">Farmer</option>
                       </CFormSelect>
                     </CInputGroup>
+                    {errors.occupation && <p className="error">{errors.occupation}</p>}
                   </div>
 
                   <div className="input-box">
-                    <span className="details">Nominee Name</span>
+                    <div className="details-container">
+                      <span className="details">Nominee Name</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilUser} />
                       </CInputGroupText>
                       <CFormInput name="nomineeName" value={formData.nomineeName} onChange={handleChange} />
                     </CInputGroup>
+                    {errors.nomineeName && <p className="error">{errors.nomineeName}</p>}
                   </div>
 
                   <div className="input-box">
-                    <span className="details">Nominee Relationship</span>
+                    <div className="details-container">
+                      <span className="details">Nominee Relationship</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilPeople} />
                       </CInputGroupText>
                       <CFormInput name="nomineeRelation" value={formData.nomineeRelation} onChange={handleChange} />
                     </CInputGroup>
+                    {errors.nomineeRelation && <p className="error">{errors.nomineeRelation}</p>}
                   </div>
 
                   <div className="input-box">
-                    <span className="details">Nominee Age</span>
+                    <div className="details-container">
+                      <span className="details">Nominee Age</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilBirthdayCake} />
                       </CInputGroupText>
                       <CFormInput name="nomineeAge" value={formData.nomineeAge} onChange={handleChange} />
                     </CInputGroup>
+                    {errors.nomineeName && <p className="error">{errors.nomineeName}</p>}
                   </div>
                 </div>
 
@@ -833,7 +1301,7 @@ function BookingForm() {
                   <button type="button" className="btn btn-secondary" onClick={() => setActiveTab(2)}>
                     Back
                   </button>
-                  <button type="button" className="btn btn-primary" onClick={() => setActiveTab(4)}>
+                  <button type="button" className="btn btn-primary" onClick={handleNextTab}>
                     Next
                   </button>
                 </div>
@@ -844,7 +1312,10 @@ function BookingForm() {
               <>
                 <div className="user-details">
                   <div className="input-box">
-                    <span className="details">Exchange Mode</span>
+                    <div className="details-container">
+                      <span className="details">Exchange Mode</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilSwapVertical} />
@@ -855,11 +1326,15 @@ function BookingForm() {
                         <option value={false}>No</option>
                       </CFormSelect>
                     </CInputGroup>
+                    {errors.is_exchange && <p className="error">{errors.is_exchange}</p>}
                   </div>
                   {formData.is_exchange === 'true' && (
                     <>
                       <div className="input-box">
-                        <span className="details">Exchange Broker</span>
+                        <div className="details-container">
+                          <span className="details">Exchange Broker</span>
+                          <span className="required">*</span>
+                        </div>
                         <CInputGroup>
                           <CInputGroupText className="input-icon">
                             <CIcon icon={cilPeople} />
@@ -873,42 +1348,58 @@ function BookingForm() {
                             ))}
                           </CFormSelect>
                         </CInputGroup>
+                        {errors.broker_id && <p className="error">{errors.broker_id}</p>}
                       </div>
 
                       <div className="input-box">
-                        <span className="details">Exchange Vehicle Number</span>
+                        <div className="details-container">
+                          <span className="details">Exchange Vehicle Number</span>
+                          <span className="required">*</span>
+                        </div>
                         <CInputGroup>
                           <CInputGroupText className="input-icon">
                             <CIcon icon={cilBike} />
                           </CInputGroupText>
                           <CFormInput name="vehicle_number" value={formData.vehicle_number} onChange={handleChange} />
                         </CInputGroup>
+                        {errors.vehicle_number && <p className="error">{errors.vehicle_number}</p>}
                       </div>
 
                       <div className="input-box">
-                        <span className="details">Exchange Price</span>
+                        <div className="details-container">
+                          <span className="details">Exchange Price</span>
+                          <span className="required">*</span>
+                        </div>
                         <CInputGroup>
                           <CInputGroupText className="input-icon">
                             <CIcon icon={cilMoney} />
                           </CInputGroupText>
                           <CFormInput name="exchange_price" value={formData.exchange_price} onChange={handleChange} />
                         </CInputGroup>
+                        {errors.exchange_price && <p className="error">{errors.exchange_price}</p>}
                       </div>
 
                       <div className="input-box">
-                        <span className="details">Exchange Chassis Number</span>
+                        <div className="details-container">
+                          <span className="details">Exchange Chassis Number</span>
+                          <span className="required">*</span>
+                        </div>
                         <CInputGroup>
                           <CInputGroupText className="input-icon">
                             <CIcon icon={cilBarcode} />
                           </CInputGroupText>
                           <CFormInput name="chassis_number" value={formData.chassis_number} onChange={handleChange} />
                         </CInputGroup>
+                        {errors.chassis_number && <p className="error">{errors.chassis_number}</p>}
                       </div>
                     </>
                   )}
 
                   <div className="input-box">
-                    <span className="details">Payment Type</span>
+                    <div className="details-container">
+                      <span className="details">Payment Type</span>
+                      <span className="required">*</span>
+                    </div>
                     <CInputGroup>
                       <CInputGroupText className="input-icon">
                         <CIcon icon={cilBank} />
@@ -919,32 +1410,21 @@ function BookingForm() {
                         <option value="finance">Finance</option>
                       </CFormSelect>
                     </CInputGroup>
+                    {errors.type && <p className="error">{errors.type}</p>}
                   </div>
-
-                  {/* {formData.payment_type === 'Cash' && (
-                    <>
-                      <div className="input-box">
-                        <span className="details">Amount</span>
-                        <CInputGroup>
-                          <CInputGroupText className="input-icon">
-                            <CIcon icon={cilMoney} />
-                          </CInputGroupText>
-                          <CFormInput name="finance_amount" value={formData.finance_amount} onChange={handleChange} />
-                        </CInputGroup>
-                      </div>
-                    </>
-                  )} */}
-
                   {formData.type === 'finance' && (
                     <>
                       <div className="input-box">
-                        <span className="details">Financer Name</span>
+                        <div className="details-container">
+                          <span className="details">Financer Name</span>
+                          <span className="required">*</span>
+                        </div>
                         <CInputGroup>
                           <CInputGroupText className="input-icon">
                             <CIcon icon={cilInstitution} />
                           </CInputGroupText>
                           <CFormSelect name="financer_id" value={formData.financer_id} onChange={handleChange}>
-                            <option value="">-Select-</option>
+                            <option value="">-Select Financer-</option>
                             {financers.map((financer) => (
                               <option key={financer._id} value={financer._id}>
                                 {financer.name}
@@ -952,54 +1432,101 @@ function BookingForm() {
                             ))}
                           </CFormSelect>
                         </CInputGroup>
+                        {errors.financer_id && <p className="error">{errors.financer_id}</p>}
                       </div>
 
                       <div className="input-box">
-                        <span className="details">Finance Scheme</span>
+                        <div className="details-container">
+                          <span className="details">GC Applicable</span>
+                          <span className="required">*</span>
+                        </div>
+                        <CInputGroup>
+                          <CInputGroupText className="input-icon">
+                            <CIcon icon={cilTask} />
+                          </CInputGroupText>
+                          <CFormSelect
+                            name="gcApplicable"
+                            value={formData.gcApplicable}
+                            onChange={(e) => {
+                              const isApplicable = e.target.value === 'true';
+                              setFormData((prev) => ({
+                                ...prev,
+                                gcApplicable: isApplicable,
+                                gcAmount: isApplicable ? selectedGcRate : ''
+                              }));
+                              if (!isApplicable) setSelectedGcRate('');
+                            }}
+                          >
+                            <option value="">-Select-</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                          </CFormSelect>
+                        </CInputGroup>
+                        {errors.gcApplicable && <p className="error">{errors.gcApplicable}</p>}
+                      </div>
+
+                      {formData.gcApplicable === true && financerGcRates.length > 0 && (
+                        <div className="input-box">
+                          <div className="details-container">
+                            <span className="details">GC Rate</span>
+                            <span className="required">*</span>
+                          </div>
+                          <CInputGroup>
+                            <CInputGroupText className="input-icon">
+                              <CIcon icon={cilMoney} />
+                            </CInputGroupText>
+                            <CFormInput value={`${financerGcRates[0].gcRate}%`} readOnly onChange={handleGcRateChange} />
+                          </CInputGroup>
+                        </div>
+                      )}
+
+                      {formData.gcApplicable === true && selectedGcRate && (
+                        <div className="input-box">
+                          <div className="details-container">
+                            <span className="details">GC Amount</span>
+                            <span className="required">*</span>
+                          </div>
+                          <CInputGroup>
+                            <CInputGroupText className="input-icon">
+                              <CIcon icon={cilMoney} />
+                            </CInputGroupText>
+                            <CFormInput
+                              name="gcAmount"
+                              value={formData.gcAmount}
+                              onChange={handleChange}
+                              placeholder="GC Amount will be auto-filled"
+                            />
+                          </CInputGroup>
+                          {errors.gcAmount && <p className="error">{errors.gcAmount}</p>}
+                        </div>
+                      )}
+                      <div className="input-box">
+                        <div className="details-container">
+                          <span className="details">Finance Scheme</span>
+                          <span className="required">*</span>
+                        </div>
                         <CInputGroup>
                           <CInputGroupText className="input-icon">
                             <CIcon icon={cilListRich} />
                           </CInputGroupText>
                           <CFormInput name="scheme" value={formData.scheme} onChange={handleChange} />
                         </CInputGroup>
+                        {errors.scheme && <p className="error">{errors.scheme}</p>}
                       </div>
 
                       <div className="input-box">
-                        <span className="details">EMI Scheme</span>
+                        <div className="details-container">
+                          <span className="details">EMI Scheme</span>
+                          <span className="required">*</span>
+                        </div>
                         <CInputGroup>
                           <CInputGroupText className="input-icon">
                             <CIcon icon={cilChartLine} />
                           </CInputGroupText>
                           <CFormInput name="emi_plan" value={formData.emi_plan} onChange={handleChange} />
                         </CInputGroup>
+                        {errors.emi_plan && <p className="error">{errors.emi_plan}</p>}
                       </div>
-                      <div className="input-box">
-                        <span className="details">GC Applicable</span>
-                        <CInputGroup>
-                          <CInputGroupText className="input-icon">
-                            <CIcon icon={cilTask} />
-                          </CInputGroupText>
-                          <CFormSelect name="gcApplicable" value={formData.gcApplicable} onChange={handleChange}>
-                            <option value="">-Select-</option>
-                            <option value={true}>Yes</option>
-                            <option value={false}>No</option>
-                          </CFormSelect>
-                        </CInputGroup>
-                      </div>
-
-                      {formData.gcApplicable === 'true' && (
-                        <>
-                          <div className="input-box">
-                            <span className="details">GC Applicable Amount</span>
-                            <CInputGroup>
-                              <CInputGroupText className="input-icon">
-                                <CIcon icon={cilMoney} />
-                              </CInputGroupText>
-                              <CFormInput name="gcAmount" value={formData.gcAmount} onChange={handleChange} />
-                            </CInputGroup>
-                          </div>
-                        </>
-                      )}
                     </>
                   )}
                 </div>
@@ -1007,7 +1534,7 @@ function BookingForm() {
                   <button type="button" className="btn btn-secondary" onClick={() => setActiveTab(3)}>
                     Back
                   </button>
-                  <button type="button" className="btn btn-primary" onClick={() => setActiveTab(5)}>
+                  <button type="button" className="btn btn-primary" onClick={handleNextTab}>
                     Next
                   </button>
                 </div>
@@ -1043,7 +1570,7 @@ function BookingForm() {
                   <button type="button" className="btn btn-secondary" onClick={() => setActiveTab(4)}>
                     Back
                   </button>
-                  <button type="button" className="btn btn-primary" onClick={() => setActiveTab(6)}>
+                  <button type="button" className="btn btn-primary" onClick={handleNextTab}>
                     Next
                   </button>
                 </div>
@@ -1063,7 +1590,7 @@ function BookingForm() {
                   </div>
                 </div>
                 <div>
-                  {selectedModelHeaders.length > 0 && (
+                  {/* {selectedModelHeaders.length > 0 && (
                     <div className="model-options-section">
                       <h5 className="section-title">Model Options</h5>
                       <div className="options-grid">
@@ -1089,15 +1616,35 @@ function BookingForm() {
                         ))}
                       </div>
                     </div>
+                  )} */}
+
+                  {selectedModelHeaders.length > 0 && (
+                    <div className="model-headers-section">
+                      <h5>Model Options</h5>
+                      <div className="headers-list">
+                        {selectedModelHeaders.map((header) => {
+                          const isDisabled = header.is_mandatory || formData.optionalComponents.includes(header.header_id);
+                          return (
+                            <div key={header.header_id} className="header-item">
+                              <CFormCheck
+                                id={`header-${header.header_id}`}
+                                label={`${header.header_key} ${header.is_mandatory ? '(Mandatory)' : ''}`}
+                                checked={isDisabled || formData.optionalComponents.includes(header.header_id)}
+                                onChange={(e) => !isDisabled && handleHeaderSelection(header.header_id, e.target.checked)}
+                                disabled={isDisabled}
+                              />
+                              {isDisabled && <input type="hidden" name={`selected-${header.header_id}`} value={header.header_id} />}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
                   )}
                 </div>
                 <div className="booking-button-row">
                   <button type="button" className="btn btn-secondary" onClick={() => setActiveTab(5)}>
                     Back
                   </button>
-                  {/* <button type="submit" className="btn btn-primary" form="bookingForm">
-                    Apply for Approval
-                  </button> */}
                   <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
                     {isSubmitting ? 'Submitting...' : 'Apply for Approval'}
                   </button>

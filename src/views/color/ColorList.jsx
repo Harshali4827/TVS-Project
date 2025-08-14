@@ -59,7 +59,7 @@ const ColorList = () => {
         showSuccess();
       } catch (error) {
         console.log(error);
-        showError();
+        showError(error);
       }
     }
   };
@@ -81,9 +81,8 @@ const ColorList = () => {
               <tr>
                 <th>Sr.no</th>
                 <th>Color name</th>
-                <th>Hex code</th>
                 <th>Model</th>
-                <th>Status</th>
+                {/* <th>Status</th> */}
                 <th>Action</th>
               </tr>
             </thead>
@@ -99,9 +98,9 @@ const ColorList = () => {
                   <tr key={index}>
                     <td>{index + 1}</td>
                     <td>{color.name}</td>
-                    <td>{color.hex_code}</td>
-                    <td>{color.models.join(',')}</td>
-                    <td>
+                    <td>{color.models && color.models.length > 0 ? color.models.map((model) => model.model_name).join(', ') : ''}</td>
+
+                    {/* <td>
                       <span className={`status-badge ${color.status ? 'active' : 'inactive'}`}>
                         {color.status ? (
                           <>
@@ -113,7 +112,7 @@ const ColorList = () => {
                           </>
                         )}
                       </span>
-                    </td>
+                    </td> */}
                     <td>
                       <button className="action-button" onClick={(event) => handleClick(event, color.id)}>
                         Action

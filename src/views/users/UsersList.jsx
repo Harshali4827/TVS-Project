@@ -8,26 +8,15 @@ import {
   Menu,
   MenuItem,
   SearchOutlinedIcon,
-  FontAwesomeIcon,
-  faCopy,
-  faFileExcel,
-  faFilePdf,
-  faFileCsv,
-  CSVLink,
   FaCheckCircle,
   FaTimesCircle,
   getDefaultSearchFields,
   useTableFilter,
   usePagination,
-  copyToClipboard,
-  exportToCsv,
-  exportToExcel,
-  exportToPdf,
   confirmDelete,
   showError,
   showSuccess,
-  axiosInstance,
-  CopyToClipboard
+  axiosInstance
 } from 'utils/tableImports';
 
 const UsersList = () => {
@@ -48,11 +37,8 @@ const UsersList = () => {
       const response = await axiosInstance.get(`/users`);
       const users = response.data.data.map((user) => ({
         ...user,
-        // Ensure consistent ID field
         id: user._id || user.id,
-        // Extract primary role name
         primaryRole: user.roles?.[0]?.name || 'No Role',
-        // Format branch name
         branchName: user.branchDetails?.name || user.branch || 'N/A'
       }));
 
@@ -109,7 +95,6 @@ const UsersList = () => {
         isActive: newStatus
       });
 
-      // Update both data and filteredData states
       const updateStatus = (users) => users.map((user) => (user.id === userId ? { ...user, isActive: newStatus } : user));
 
       setData((prev) => updateStatus(prev));
@@ -123,14 +108,12 @@ const UsersList = () => {
     }
   };
 
-  // Format date for display
   const formatDate = (dateString) => {
     if (!dateString) return 'Never logged in';
     const date = new Date(dateString);
     return date.toLocaleString();
   };
 
-  // Get role names as comma-separated string
   const getRoleNames = (roles) => {
     if (!roles || !roles.length) return 'No Role';
     return roles.map((role) => role.name).join(', ');
@@ -157,6 +140,7 @@ const UsersList = () => {
                 <th>Mobile number</th>
                 <th>Branch</th>
                 <th>Role(s)</th>
+                <th>Discount</th>
                 <th>Last login</th>
                 {/* <th>Created by</th> */}
                 <th>Is active</th>
@@ -177,19 +161,10 @@ const UsersList = () => {
                     <td>{user.mobile}</td>
                     <td>{user.branchName}</td>
                     <td>{getRoleNames(user.roles)}</td>
+                    <td>{user.discount || '0'}</td>
                     <td>{formatDate(user.lastLogin)}</td>
                     <td>
-                      <span className={`status-badge ${user.isActive ? 'active' : 'inactive'}`}>
-                        {user.isActive ? (
-                          <>
-                            <FaCheckCircle className="status-icon active-icon" /> Active
-                          </>
-                        ) : (
-                          <>
-                            <FaTimesCircle className="status-icon inactive-icon" /> Inactive
-                          </>
-                        )}
-                      </span>
+                      {user.status}
                     </td>
                     <td>
                       <button className="action-button" onClick={(event) => handleClick(event, user.id)}>
@@ -200,9 +175,9 @@ const UsersList = () => {
                           <MenuItem>Edit</MenuItem>
                         </Link>
                         <MenuItem onClick={() => handleDelete(user.id)}>Delete</MenuItem>
-                        <MenuItem onClick={() => handleToggleActive(user.id, user.isActive)}>
+                        {/* <MenuItem onClick={() => handleToggleActive(user.id, user.isActive)}>
                           {user.isActive ? 'Deactivate' : 'Activate'}
-                        </MenuItem>
+                        </MenuItem> */}
                       </Menu>
                     </td>
                   </tr>

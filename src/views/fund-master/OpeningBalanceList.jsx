@@ -13,10 +13,10 @@ import {
   confirmDelete,
   showError,
   showSuccess,
-  axiosInstance
+  axiosInstance,
 } from 'utils/tableImports';
 
-const InventoryList = () => {
+const OpeningBalanceList = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [menuId, setMenuId] = useState(null);
   const { data, setData, filteredData, setFilteredData, handleFilter } = useTableFilter([]);
@@ -29,9 +29,9 @@ const InventoryList = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axiosInstance.get(`/inward`);
-      setData(response.data.data.vehicles);
-      setFilteredData(response.data.data.vehicles);
+      const response = await axiosInstance.get(`/branches`);
+      setData(response.data.data);
+      setFilteredData(response.data.data);
     } catch (error) {
       console.log('Error fetching data', error);
     }
@@ -51,13 +51,13 @@ const InventoryList = () => {
     const result = await confirmDelete();
     if (result.isConfirmed) {
       try {
-        await axiosInstance.delete(`/inventory/${id}`);
-        setData(data.filter((vehicle) => vehicle.id !== id));
+        await axiosInstance.delete(`/branches/${id}/opening-balance`);
+        setData(data.filter((branch) => branch.id !== id));
         fetchData();
         showSuccess();
       } catch (error) {
         console.log(error);
-        showError();
+        showError(error);
       }
     }
   };
@@ -65,11 +65,11 @@ const InventoryList = () => {
     <div className="table-container">
       <div className="table-header">
         <div className="search-icon-data">
-          <input type="text" placeholder="Search.." onChange={(e) => handleFilter(e.target.value, getDefaultSearchFields('vehicle'))} />
+          <input type="text" placeholder="Search.." onChange={(e) => handleFilter(e.target.value, getDefaultSearchFields('branch'))} />
           <SearchOutlinedIcon />
         </div>
-        <Link to="/vehicle-inventory/add-inventory">
-          <button className="new-user-btn">+ New Inward</button>
+        <Link to="/add-balance">
+          <button className="new-user-btn">+ New</button>
         </Link>
       </div>
       <div className="table-responsive">
@@ -78,17 +78,8 @@ const InventoryList = () => {
             <thead className="table-header-fixed">
               <tr>
                 <th>Sr.no</th>
-                <th>Model Name</th>
-                <th>Color</th>
-                <th>Type</th>
-                <th>Engine No</th>
-                <th>Motor No</th>
-                <th>Key No</th>
-                <th>Battery No</th>
-                <th>Chassis No</th>
-                <th>Purchase Date</th>
-                <th>Is Damaged Approved?</th>
-                <th>Current Status</th>
+                <th>Location</th>
+                <th>Opening Balance</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -96,33 +87,24 @@ const InventoryList = () => {
               {currentRecords.length === 0 ? (
                 <tr>
                   <td colSpan="4" style={{ color: 'red' }}>
-                    No inventory details available
+                    No balance available
                   </td>
                 </tr>
               ) : (
-                currentRecords.map((vehicle, index) => (
+                currentRecords.map((branch, index) => (
                   <tr key={index}>
                     <td>{index + 1}</td>
-                    <td>{vehicle.model}</td>
-                    <td>{vehicle.colors.join(',')}</td>
-                    <td>{vehicle.type}</td>
-                    <td>{vehicle.engineNumber}</td>
-                    <td>{vehicle.motorNumber}</td>
-                    <td>{vehicle.keyNumber}</td>
-                    <td>{vehicle.batteryNumber}</td>
-                    <td>{vehicle.chassisNumber}</td>
-                    <td>{vehicle.createdAt}</td>
-                    <td>{vehicle.hasDamage === true ? 'Yes' : 'No'}</td>
-                    <td>{vehicle.status}</td>
+                    <td>{branch.name}</td>
+                     <td>{branch.opening_balance}</td>
                     <td>
-                      <button className="action-button" onClick={(event) => handleClick(event, vehicle.id)}>
+                      <button className="action-button" onClick={(event) => handleClick(event, branch.id)}>
                         Action
                       </button>
-                      <Menu id={`action-menu-${vehicle.id}`} anchorEl={anchorEl} open={menuId === vehicle.id} onClose={handleClose}>
-                        <Link className="Link" to={`/vehicle/update-vehicle/${vehicle.id}`}>
+                      <Menu id={`action-menu-${branch.id}`} anchorEl={anchorEl} open={menuId === branch.id} onClose={handleClose}>
+                        <Link className="Link" to={`/update-balance/${branch.id}`}>
                           <MenuItem>Edit</MenuItem>
                         </Link>
-                        <MenuItem onClick={() => handleDelete(vehicle.id)}>Delete</MenuItem>
+                        <MenuItem onClick={() => handleDelete(branch.id)}>Delete</MenuItem>
                       </Menu>
                     </td>
                   </tr>
@@ -137,4 +119,4 @@ const InventoryList = () => {
   );
 };
 
-export default InventoryList;
+export default OpeningBalanceList;

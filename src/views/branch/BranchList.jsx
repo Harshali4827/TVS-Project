@@ -1,3 +1,4 @@
+import config from 'config';
 import '../../css/table.css';
 import {
   React,
@@ -59,7 +60,7 @@ const BranchList = () => {
         showSuccess();
       } catch (error) {
         console.log(error);
-        showError();
+        showError(error);
       }
     }
   };
@@ -111,6 +112,8 @@ const BranchList = () => {
                 <th>Phone</th>
                 <th>Email</th>
                 <th>GST Number</th>
+                <th>Logo1</th>
+                <th>Logo2</th>
                 <th>Is active</th>
                 <th>Action</th>
               </tr>
@@ -132,7 +135,16 @@ const BranchList = () => {
                     <td>{branch.phone}</td>
                     <td>{branch.email}</td>
                     <td>{branch.gst_number}</td>
-
+                    <td>
+                      {branch.logo1 && (
+                        <img src={`${config.baseURL || ''}${branch.logo1}`} alt="Logo 1" style={{ maxWidth: '100px', maxHeight: '50px' }} />
+                      )}
+                    </td>
+                    <td>
+                      {branch.logo2 && (
+                        <img src={`${config.baseURL || ''}${branch.logo2}`} alt="Logo 2" style={{ maxWidth: '100px', maxHeight: '50px' }} />
+                      )}
+                    </td>
                     <td>
                       <span className={`status-text ${branch.is_active}`}>
                         {branch.is_active === true ? (

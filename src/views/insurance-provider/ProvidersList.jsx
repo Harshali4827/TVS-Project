@@ -14,9 +14,7 @@ import {
   confirmDelete,
   showError,
   showSuccess,
-  axiosInstance,
-  FaCheckCircle,
-  FaTimesCircle
+  axiosInstance
 } from 'utils/tableImports';
 
 const ProviderList = () => {
@@ -79,7 +77,7 @@ const ProviderList = () => {
         showSuccess();
       } catch (error) {
         console.log(error);
-        showError();
+        showError(error);
       }
     }
   };
@@ -87,7 +85,11 @@ const ProviderList = () => {
     <div className="table-container">
       <div className="table-header">
         <div className="search-icon-data">
-          <input type="text" placeholder="Search.." onChange={(e) => handleFilter(e.target.value, getDefaultSearchFields('branch'))} />
+          <input
+            type="text"
+            placeholder="Search.."
+            onChange={(e) => handleFilter(e.target.value, getDefaultSearchFields('insurance_provider'))}
+          />
           <SearchOutlinedIcon />
         </div>
         <Link to="/insurance-provider/add-provider">

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../../css/form.css';
 import { CInputGroup, CInputGroupText, CFormInput, CFormSelect } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
-import { cilEnvelopeClosed, cilLocationPin, cilPhone, cilUser } from '@coreui/icons';
+import { cilDollar, cilEnvelopeClosed, cilLocationPin, cilPhone, cilUser } from '@coreui/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { showError, showFormSubmitError, showFormSubmitToast } from 'utils/sweetAlerts';
 import axiosInstance from 'axiosInstance';
@@ -12,8 +12,9 @@ function AddUser() {
     name: '',
     email: '',
     mobile: '',
-    branchId: '',
-    roleId: ''
+    branch: '',
+    roleId: '',
+    discount: ''
   });
   const [roles, setRoles] = useState([]);
   const [branches, setBranches] = useState([]);
@@ -50,8 +51,10 @@ function AddUser() {
       const userData = res.data.data;
       const normalizedData = {
         ...userData,
-        branchId: userData.branchId?._id || '',
-        roleId: userData.roleId?._id || ''
+        // branch: userData.branch?._id || '',
+        branch: userData.branchDetails?._id || '',
+        // roleId: userData.roleId?._id || ''
+        roleId: userData.roles[0]?._id || ''
       };
       setFormData(normalizedData);
     } catch (error) {
@@ -87,7 +90,7 @@ function AddUser() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
-    // setErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
+
     if (name === 'username') {
       const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
       if (!value) {
@@ -113,17 +116,35 @@ function AddUser() {
     if (!formData.name) formErrors.name = 'This field is required';
     if (!formData.email) formErrors.email = 'This field is required';
     if (!formData.mobile) formErrors.mobile = 'This field is required';
-    if (!formData.branchId) formErrors.branchId = 'This field is required';
+    if (!formData.branch) formErrors.branch = 'This field is required';
     if (!formData.roleId) formErrors.roleId = 'This field is required';
+
+    const selectedRole = roles.find((role) => role._id === formData.roleId);
+    if (selectedRole?.name === 'SALES_EXECUTIVE') {
+      if (!formData.discount && formData.discount !== 0) {
+        formErrors.discount = 'Discount is required for Sales Executive';
+      } else {
+        const discountNum = Number(formData.discount);
+        if (isNaN(discountNum)) {
+          formErrors.discount = 'Discount must be a number';
+        } else if (discountNum < 0) {
+          formErrors.discount = 'Discount must be positive';
+        }
+      }
+    }
+
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       return;
     }
+
     const payload = {
       ...formData,
-      branchId: String(formData.branchId),
-      roleId: String(formData.roleId)
+      branch: String(formData.branch),
+      roleId: String(formData.roleId),
+      discount: formData.discount ? Number(formData.discount) : undefined
     };
+
     console.log('Submitting payload:', payload);
 
     try {
@@ -188,7 +209,7 @@ function AddUser() {
                   <CInputGroupText className="input-icon">
                     <CIcon icon={cilLocationPin} />
                   </CInputGroupText>
-                  <CFormSelect name="branchId" value={formData.branchId} onChange={handleChange}>
+                  <CFormSelect name="branch" value={formData.branch} onChange={handleChange}>
                     <option value="">-Select-</option>
                     {branches.map((branch) => (
                       <option key={branch._id} value={branch._id}>
@@ -197,7 +218,7 @@ function AddUser() {
                     ))}
                   </CFormSelect>
                 </CInputGroup>
-                {errors.branchId && <p className="error">{errors.branchId}</p>}
+                {errors.branch && <p className="error">{errors.branch}</p>}
               </div>
               <div className="input-box">
                 <div className="details-container">
@@ -219,6 +240,22 @@ function AddUser() {
                 </CInputGroup>
                 {errors.roleId && <p className="error">{errors.roleId}</p>}
               </div>
+              {roles.find((role) => role._id === formData.roleId)?.name === 'SALES_EXECUTIVE' && (
+                <div className="input-box">
+                  <div className="details-container">
+                    <span className="details">Discount</span>
+                    <span className="required">*</span>
+                  </div>
+                  <CInputGroup>
+                    <CInputGroupText className="input-icon">
+                      <CIcon icon={cilDollar} />
+                    </CInputGroupText>
+                    <CFormInput type="text" name="discount" value={formData.discount} onChange={handleChange} />
+                  </CInputGroup>
+                  {errors.discount && <p className="error">{errors.discount}</p>}
+                </div>
+              )}
+
               <div className="input-box">
                 <div className="details-container">
                   <span className="details">Mobile number</span>

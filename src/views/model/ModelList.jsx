@@ -9,18 +9,9 @@ import {
   MenuItem,
   SearchOutlinedIcon,
   FontAwesomeIcon,
-  faCopy,
-  faFileExcel,
-  faFilePdf,
   getDefaultSearchFields,
   useTableFilter,
   usePagination,
-  copyToClipboard,
-  exportToCsv,
-  exportToExcel,
-  confirmDelete,
-  showError,
-  showSuccess,
   axiosInstance,
   CopyToClipboard,
   FaCheckCircle,
@@ -170,7 +161,7 @@ const ModelList = () => {
         showSuccess();
       } catch (error) {
         console.log(error);
-        showError();
+        showError(error);
       }
     }
   };

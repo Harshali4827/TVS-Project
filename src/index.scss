@@ -90,10 +90,7 @@
   overflow: visible;
   z-index: 1000;
 }
-.form-control[type='file'] {
-  // height: auto;
-  padding-left: 0.45rem;
-}
+
 .table {
   .badge {
     margin-right: 0.25rem;
@@ -110,9 +107,9 @@
         text-align: left;
         > span {
           justify-content: flex-start !important;
-          .form-control {
-            max-width: 150px;
-          }
+          // .form-control {
+          //   max-width: 150px;
+          // }
         }
         .btn {
           margin-top: 8px;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../../css/form.css';
-import { CInputGroup, CInputGroupText, CFormInput, CFormSwitch, CFormCheck } from '@coreui/react';
+import { CInputGroup, CInputGroupText, CFormInput, CFormSwitch, CFormCheck, CFormSelect } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
 import { cilBike, cilDescription, cilImage, cilLink, cilText } from '@coreui/icons';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -16,7 +16,9 @@ function AddOffer() {
     image: null,
     isActive: true,
     applyToAllModels: false,
-    applicableModels: []
+    applicableModels: [],
+    offerLanguage: '',
+    priority: ''
   });
   const [errors, setErrors] = useState({});
   const [models, setModels] = useState([]);
@@ -75,6 +77,8 @@ function AddOffer() {
     let formErrors = {};
 
     if (!formData.title) formErrors.title = 'Title is required';
+    if (!formData.offerLanguage) formErrors.offerLanguage = 'Language is required';
+    if (!formData.priority) formErrors.priority = 'Priority is required';
     if (!formData.description) formErrors.description = 'Description is required';
 
     if (!formData.isActive && formData.applicableModels.length === 0) {
@@ -93,6 +97,8 @@ function AddOffer() {
       formDataToSend.append('url', formData.url);
       formDataToSend.append('isActive', formData.isActive);
       formDataToSend.append('applyToAllModels', formData.applyToAllModels);
+      formDataToSend.append('offerLanguage', formData.offerLanguage);
+      formDataToSend.append('priority', formData.priority);
       formData.applicableModels.forEach((modelId) => {
         formDataToSend.append('applicableModels[]', modelId);
       });
@@ -101,7 +107,7 @@ function AddOffer() {
         formDataToSend.append('image', formData.image);
       }
       if (id) {
-        await axiosInstance.patch(`/offers/${id}`, formDataToSend, {
+        await axiosInstance.put(`/offers/${id}`, formDataToSend, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }
@@ -182,6 +188,37 @@ function AddOffer() {
                   <CFormInput type="file" name="image" onChange={handleChange} accept="image/*" />
                 </CInputGroup>
               </div>
+              <div className="input-box">
+                <div className="details-container">
+                  <span className="details">Offer Language </span>
+                  <span className="required">*</span>
+                </div>
+                <CInputGroup>
+                  <CInputGroupText className="input-icon">
+                    <CIcon icon={cilText} />
+                  </CInputGroupText>
+                  <CFormSelect name="offerLanguage" value={formData.offerLanguage} onChange={handleChange}>
+                    <option value="">-Select-</option>
+                    <option value="Marathi">Marathi</option>
+                    <option value="English">English</option>
+                  </CFormSelect>
+                </CInputGroup>
+                {errors.offerLanguage && <p className="error">{errors.offerLanguage}</p>}
+              </div>
+              <div className="input-box">
+                <div className="details-container">
+                  <span className="details">Priority</span>
+                  <span className="required">*</span>
+                </div>
+                <CInputGroup>
+                  <CInputGroupText className="input-icon">
+                    <CIcon icon={cilText} />
+                  </CInputGroupText>
+                  <CFormInput type="text" name="priority" value={formData.priority} onChange={handleChange} />
+                </CInputGroup>
+                {errors.priority && <p className="error">{errors.priority}</p>}
+              </div>
+
               <div className="input-box">
                 <span className="details">Apply for all</span>
                 <CInputGroup>

@@ -7,21 +7,13 @@ import {
   Menu,
   MenuItem,
   SearchOutlinedIcon,
-  FontAwesomeIcon,
-  faCopy,
-  faFileExcel,
-  faFilePdf,
   getDefaultSearchFields,
   useTableFilter,
   usePagination,
-  copyToClipboard,
-  exportToExcel,
-  exportToPdf,
   confirmDelete,
   showError,
   showSuccess,
   axiosInstance,
-  CopyToClipboard,
   FaCheckCircle,
   FaTimesCircle
 } from 'utils/tableImports';
@@ -57,22 +49,17 @@ const AttachmentsList = () => {
     setMenuId(null);
   };
 
-  const handleExcelExport = () => exportToExcel(data, 'Attachments');
-  const handlePdfExport = () => exportToPdf(data, ['title', 'description', 'isForAllModels', 'applicableModels'], 'Attachments');
-
-  //   const csvExport = exportToCsv(data, 'Attachments');
-
   const handleDelete = async (id) => {
     const result = await confirmDelete();
     if (result.isConfirmed) {
       try {
-        await axiosInstance.delete(`/attachment/${id}`);
+        await axiosInstance.delete(`/attachments/${id}`);
         setData(data.filter((attachment) => attachment.id !== id));
         fetchData();
         showSuccess();
       } catch (error) {
         console.log(error);
-        showError();
+        showError(error);
       }
     }
   };

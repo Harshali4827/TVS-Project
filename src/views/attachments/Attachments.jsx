@@ -54,7 +54,8 @@ function Attachments() {
         title: attachment.title || '',
         description: attachment.description || '',
         isForAllModels: attachment.isForAllModels || false,
-        applicableModels: attachment.applicableModels || [],
+        // applicableModels: attachment.applicableModels || [],
+        applicableModels: attachment.applicableModels.map((model) => model.id) || [],
         youtubeUrls: youtubeUrl,
         images: existingImages,
         videos: existingVideos,
@@ -77,10 +78,25 @@ function Attachments() {
 
     fetchModels();
   }, []);
-
+  
   const handleChange = (e) => {
     const { name, value, files, type } = e.target;
+
     if (type === 'file') {
+      if (name === 'videos' && files) {
+        const oversizedVideos = Array.from(files).filter((file) => file.size > MAX_VIDEO_SIZE);
+
+        if (oversizedVideos.length > 0) {
+          const oversizedNames = oversizedVideos.map((file) => file.name).join(', ');
+          Swal.fire({
+            title: 'File Size Exceeded',
+            text: `The following videos exceed 25MB limit: ${oversizedNames}`,
+            icon: 'error'
+          });
+          return;
+        }
+      }
+
       setFormData((prev) => ({
         ...prev,
         [name]: files
@@ -93,6 +109,7 @@ function Attachments() {
     }
     setErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
   };
+
   const handleModelSelect = (modelId) => {
     setFormData((prevData) => {
       const isSelected = prevData.applicableModels.includes(modelId);
@@ -106,6 +123,13 @@ function Attachments() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     let formErrors = {};
+    if (formData.videos && formData.videos.length > 0) {
+      const oversizedVideos = Array.from(formData.videos).filter((file) => file.size > MAX_VIDEO_SIZE);
+      if (oversizedVideos.length > 0) {
+        formErrors.videos = 'One or more videos exceed the 25MB size limit';
+      }
+    }
+
     if (!formData.title) formErrors.title = 'Title is required';
     if (!formData.isForAllModels && formData.applicableModels.length === 0) {
       formErrors.applicableModels = 'Select at least one model if not applying to all.';
@@ -213,6 +237,7 @@ function Attachments() {
                   </CInputGroupText>
                   <CFormInput type="file" name="videos" onChange={handleChange} multiple accept="video/*" />
                 </CInputGroup>
+                <p>only upload video 25mb size</p>
               </div>
               <div className="input-box">
                 <span className="details">Documents</span>

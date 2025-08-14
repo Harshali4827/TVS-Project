@@ -73,7 +73,7 @@ const AccessoriesList = () => {
         showSuccess();
       } catch (error) {
         console.log(error);
-        showError();
+        showError(error);
       }
     }
   };
@@ -97,6 +97,7 @@ const AccessoriesList = () => {
                 <th>Name</th>
                 <th>Description</th>
                 <th>Price</th>
+                <th>Category</th>
                 <th>Part Number</th>
                 <th>Part Number Status</th>
                 <th>Compatible Models</th>
@@ -118,8 +119,8 @@ const AccessoriesList = () => {
                     <td>{accessories.name}</td>
                     <td>{accessories.description}</td>
                     <td>{accessories.price}</td>
+                    <td>{accessories.categoryDetails?.name || ''}</td>
                     <td>{accessories.part_number}</td>
-                    {/* <td>{accessories.part_number_status}</td> */}
                     <td>
                       <CFormSwitch
                         className="custom-switch"
@@ -130,7 +131,7 @@ const AccessoriesList = () => {
                       />
                     </td>
 
-                    <td>{accessories.applicable_models.join(', ')}</td>
+                    <td>{accessories.applicableModelsDetails?.map((model) => model.model_name).join(', ')}</td>
                     <td>
                       <span className={`status-text ${accessories.status}`}>
                         {accessories.status === 'active' ? (

@@ -1,0 +1,616 @@
+import '../../css/table.css';
+import {
+  React,
+  useState,
+  useEffect,
+  Link,
+  Menu,
+  MenuItem,
+  SearchOutlinedIcon,
+  getDefaultSearchFields,
+  useTableFilter,
+  usePagination,
+  axiosInstance
+} from 'utils/tableImports';
+import tvsLogo from '../../assets/images/logo.png';
+import config from 'config';
+// const ViewLedgers = () => {
+//   const { data, setData, filteredData, setFilteredData, handleFilter } = useTableFilter([]);
+
+//   const { currentRecords, PaginationOptions } = usePagination(filteredData);
+
+//   useEffect(() => {
+//     fetchData();
+//   }, []);
+
+//   const fetchData = async () => {
+//     try {
+//       const response = await axiosInstance.get(`/bookings`);
+//       setData(response.data.data.bookings);
+//       setFilteredData(response.data.data.bookings);
+//     } catch (error) {
+//       console.log('Error fetching data', error);
+//     }
+//   };
+//   const handleViewLedger = async () => {
+//     try {
+//       const res = await axiosInstance.get(`/ledger/report/${bookingData._id}`);
+//       const ledgerData = res.data.data;
+//       const ledgerUrl = `${config.baseURL}/ledger.html?bookingId=${bookingData._id}`;
+
+//       const win = window.open('', '_blank');
+//       win.document.write(`
+//         <!DOCTYPE html>
+//         <html>
+//           <head>
+//             <title>Customer Ledger</title>
+//             <style>
+//               @page {
+//                 size: A4;
+//                 margin: 15mm 10mm;
+//               }
+//               body {
+//                 font-family: Arial;
+//                 width: 100%;
+//                 margin: 0;
+//                 padding: 0;
+//                 font-size: 14px;
+//                 line-height: 1.3;
+//                 font-family: Courier New;
+//               }
+//               .container {
+//                 width: 190mm;
+//                 margin: 0 auto;
+//                 padding: 5mm;
+//               }
+//               .header-container {
+//                 display: flex;
+//                 justify-content:space-between;
+//                 margin-bottom: 3mm;
+//               }
+//               .header-text{
+//                 font-size:20px;
+//                 font-weight:bold;
+//               }
+//               .logo {
+//                 width: 30mm;
+//                 height: auto;
+//                 margin-right: 5mm;
+//               }
+//               .header {
+//                 text-align: left;
+//               }
+//               .divider {
+//                 border-top: 2px solid #AAAAAA;
+//                 margin: 3mm 0;
+//               }
+//               .header h2 {
+//                 margin: 2mm 0;
+//                 font-size: 12pt;
+//                 font-weight: bold;
+//               }
+//               .header div {
+//                 font-size: 14px;
+//               }
+//               .customer-info {
+//                 display: grid;
+//                 grid-template-columns: repeat(2, 1fr);
+//                 gap: 2mm;
+//                 margin-bottom: 5mm;
+//                 font-size: 14px;
+//               }
+//               .customer-info div {
+//                 display: flex;
+//               }
+//               .customer-info strong {
+//                 min-width: 30mm;
+//                 display: inline-block;
+//               }
+//               table {
+//                 width: 100%;
+//                 border-collapse: collapse;
+//                 margin-bottom: 5mm;
+//                 font-size: 14px;
+//                 page-break-inside: avoid;
+//               }
+//               th, td {
+//                 border: 1px solid #000;
+//                 padding: 2mm;
+//                 text-align: left;
+//               }
+//               th {
+//                 background-color: #f0f0f0;
+//                 font-weight: bold;
+//               }
+//               .footer {
+//                 margin-top: 10mm;
+//                 display: flex;
+//                 justify-content: space-between;
+//                 align-items: flex-end;
+//                 font-size: 14px;
+//               }
+//               .footer-left {
+//                 text-align: left;
+//               }
+//               .footer-right {
+//                 text-align: right;
+//               }
+//               .qr-code {
+//                 width: 35mm;
+//                 height: 35mm;
+//               }
+//               .text-right {
+//                 text-align: right;
+//               }
+//               .text-left {
+//                 text-align: left;
+//               }
+//               .text-center {
+//                 text-align: center;
+//               }
+//               @media print {
+//                 body {
+//                   width: 190mm;
+//                   height: 277mm;
+//                 }
+//                 .no-print {
+//                   display: none;
+//                 }
+//               }
+//             </style>
+//           </head>
+//           <body>
+//             <div class="container">
+//               <div class="header-container">
+//                 <img src="${tvsLogo}" class="logo" alt="TVS Logo">
+//                 <div class="header-text"> GANDHI TVS</div>
+//               </div>
+//               <div class="header">
+//                 <div>
+//                   Authorised Main Dealer: TVS Motor Company Ltd.<br>
+//                   Registered office: 'JOGPREET' Asher Estate, Near Ichhamani Lawns,<br>
+//                   Upnagar, Nashik Road, Nashik - 422101<br>
+//                   Phone: 7498903672
+//                 </div>
+//               </div>
+//               <div class="divider"></div>
+//               <div class="customer-info">
+//                 <div><strong>Customer Name:</strong> ${ledgerData.customerDetails?.name || ''}</div>
+//                 <div><strong>Ledger Date:</strong> ${ledgerData.ledgerDate || new Date().toLocaleDateString('en-GB')}</div>
+//                 <div><strong>Customer Address:</strong> ${ledgerData.customerDetails?.address || ''}</div>
+//                 <div><strong>Customer Phone:</strong> ${ledgerData.customerDetails?.phone || ''}</div>
+//                 <div><strong>Chassis No:</strong> ${ledgerData.vehicleDetails?.chassisNo || ''}</div>
+//                 <div><strong>Engine No:</strong> ${ledgerData.vehicleDetails?.engineNo || ''}</div>
+//                 <div><strong>Finance Name:</strong> ${ledgerData.financeDetails?.financer || '---Select Financer Name---'}</div>
+//                 <div><strong>Sale Executive:</strong> ${ledgerData.salesExecutive || ''}</div>
+//               </div>
+
+//               <table>
+//                 <thead>
+//                   <tr>
+//                     <th width="15%">Date</th>
+//                     <th width="35%">Description</th>
+//                     <th width="15%">Receipt/VC No</th>
+//                     <th width="10%" class="text-right">Credit (₹)</th>
+//                     <th width="10%" class="text-right">Debit (₹)</th>
+//                     <th width="15%" class="text-right">Balance (₹)</th>
+//                   </tr>
+//                 </thead>
+//                 <tbody>
+//                   ${ledgerData.entries
+//                     ?.map(
+//                       (entry) => `
+//                     <tr>
+//                       <td>${entry.date}</td>
+//                       <td>${entry.description || ''}</td>
+//                       <td>${entry.receiptNo || ''}</td>
+//                       <td class="text-right">${entry.credit ? entry.credit.toLocaleString('en-IN') : '-'}</td>
+//                       <td class="text-right">${entry.debit ? entry.debit.toLocaleString('en-IN') : '-'}</td>
+//                       <td class="text-right">${entry.balance ? entry.balance.toLocaleString('en-IN') : '-'}</td>
+//                     </tr>
+//                   `
+//                     )
+//                     .join('')}
+//                   <tr>
+//                     <td colspan="3" class="text-left"><strong>Total</strong></td>
+//                     <td class="text-right"><strong>${ledgerData.totals?.totalCredit?.toLocaleString('en-IN') || '0'}</strong></td>
+//                     <td class="text-right"><strong>${ledgerData.totals?.totalDebit?.toLocaleString('en-IN') || '0'}</strong></td>
+//                     <td class="text-right"><strong>${ledgerData.totals?.finalBalance?.toLocaleString('en-IN') || '0'}</strong></td>
+//                   </tr>
+//                 </tbody>
+//               </table>
+
+//               <div class="footer">
+//                 <div class="footer-left">
+//                   <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(ledgerUrl)}"
+//                        class="qr-code"
+//                        alt="QR Code" />
+//                 </div>
+//                 <div class="footer-right">
+//                   <p>For, Gandhi TVS</p>
+//                   <p>Authorised Signatory</p>
+//                 </div>
+//               </div>
+//             </div>
+
+//             <script>
+//               window.onload = function() {
+//                 setTimeout(() => {
+//                   window.print();
+//                 }, 300);
+//               };
+//             </script>
+//           </body>
+//         </html>
+//       `);
+//     } catch (err) {
+//       console.error('Error fetching ledger:', err);
+//       setError('Failed to load ledger. Please try again.');
+//     }
+//   };
+//   return (
+//     <div className="table-container">
+//       <div className="table-header">
+//         <div className="search-icon-data">
+//           <input type="text" placeholder="Search.." onChange={(e) => handleFilter(e.target.value, getDefaultSearchFields('financer'))} />
+//           <SearchOutlinedIcon />
+//         </div>
+//       </div>
+//       <div className="table-responsive">
+//         <div className="table-wrapper">
+//           <table className="responsive-table" style={{ overflow: 'auto' }}>
+//             <thead className="table-header-fixed">
+//               <tr>
+//                 <th>Sr.no</th>
+//                 <th>Booking ID</th>
+//                 <th>Model Name</th>
+//                 <th>Booking Date</th>
+//                 <th>Customer Name</th>
+//                 <th>Chassis Number</th>
+//                 <th>Total</th>
+//                 <th>Received</th>
+//                 <th>Balance</th>
+//                 <th>Action</th>
+//               </tr>
+//             </thead>
+//             <tbody>
+//               {data.length === 0 ? (
+//                 <tr>
+//                   <td colSpan="4" style={{ color: 'red' }}>
+//                     No ledger details available
+//                   </td>
+//                 </tr>
+//               ) : (
+//                 data.map((booking, index) => (
+//                   <tr key={index}>
+//                     <td>{index + 1}</td>
+//                     <td>{booking.bookingNumber}</td>
+//                     <td>{booking.model.model_name}</td>
+//                     <td>{booking.createdAt ? new Date(booking.createdAt).toLocaleDateString('en-GB') : 'N/A'}</td>
+//                     <td>{booking.customerDetails.name}</td>
+//                     <td>{booking.chassisNumber}</td>
+//                     <td>{booking.discountedAmount}</td>
+//                     <td>{booking.receivedAmount}</td>
+//                     <td>{booking.balanceAmount}</td>
+//                     <td>
+//                       <button className="action-button" onClick={() => handleViewLedger(booking)}>
+//                         View
+//                       </button>
+//                     </td>
+//                   </tr>
+//                 ))
+//               )}
+//             </tbody>
+//           </table>
+//         </div>
+//       </div>
+//       <PaginationOptions />
+//     </div>
+//   );
+// };
+
+// export default ViewLedgers;
+
+const ViewLedgers = () => {
+  const { data, setData, filteredData, setFilteredData, handleFilter } = useTableFilter([]);
+  const { currentRecords, PaginationOptions } = usePagination(filteredData);
+  const [error, setError] = useState(null); // Add error state
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axiosInstance.get(`/bookings`);
+      setData(response.data.data.bookings);
+      setFilteredData(response.data.data.bookings);
+    } catch (error) {
+      console.log('Error fetching data', error);
+    }
+  };
+
+  // Modified to accept booking parameter
+  const handleViewLedger = async (booking) => {
+    try {
+      const res = await axiosInstance.get(`/ledger/report/${booking._id}`);
+      const ledgerData = res.data.data;
+      const ledgerUrl = `${config.baseURL}/ledger.html?bookingId=${booking._id}`;
+
+      const win = window.open('', '_blank');
+      win.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Customer Ledger</title>
+              <style>
+                @page {
+                  size: A4;
+                  margin: 15mm 10mm;
+                }
+                body {
+                  font-family: Arial;
+                  width: 100%;
+                  margin: 0;
+                  padding: 0;
+                  font-size: 14px;
+                  line-height: 1.3;
+                  font-family: Courier New;
+                }
+                .container {
+                  width: 190mm;
+                  margin: 0 auto;
+                  padding: 5mm;
+                }
+                .header-container {
+                  display: flex;
+                  justify-content:space-between;
+                  margin-bottom: 3mm;
+                }
+                .header-text{
+                  font-size:20px;
+                  font-weight:bold;
+                }
+                .logo {
+                  width: 30mm;
+                  height: auto;
+                  margin-right: 5mm;
+                } 
+                .header {
+                  text-align: left;
+                }
+                .divider {
+                  border-top: 2px solid #AAAAAA;
+                  margin: 3mm 0;
+                }
+                .header h2 {
+                  margin: 2mm 0;
+                  font-size: 12pt;
+                  font-weight: bold;
+                }
+                .header div {
+                  font-size: 14px;
+                }
+                .customer-info {
+                  display: grid;
+                  grid-template-columns: repeat(2, 1fr);
+                  gap: 2mm;
+                  margin-bottom: 5mm;
+                  font-size: 14px;
+                }
+                .customer-info div {
+                  display: flex;
+                }
+                .customer-info strong {
+                  min-width: 30mm;
+                  display: inline-block;
+                }
+                table {
+                  width: 100%;
+                  border-collapse: collapse;
+                  margin-bottom: 5mm;
+                  font-size: 14px;
+                  page-break-inside: avoid;
+                }
+                th, td {
+                  border: 1px solid #000;
+                  padding: 2mm;
+                  text-align: left;
+                }
+                th {
+                  background-color: #f0f0f0;
+                  font-weight: bold;
+                }
+                .footer {
+                  margin-top: 10mm;
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: flex-end;
+                  font-size: 14px;
+                }
+                .footer-left {
+                  text-align: left;
+                }
+                .footer-right {
+                  text-align: right;
+                }
+                .qr-code {
+                  width: 35mm;
+                  height: 35mm;
+                }
+                .text-right {
+                  text-align: right;
+                }
+                .text-left {
+                  text-align: left;
+                }
+                .text-center {
+                  text-align: center;
+                }
+                @media print {
+                  body {
+                    width: 190mm;
+                    height: 277mm;
+                  }
+                  .no-print {
+                    display: none;
+                  }
+                }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <div class="header-container">
+                  <img src="${tvsLogo}" class="logo" alt="TVS Logo">
+                  <div class="header-text"> GANDHI TVS</div>
+                </div>
+                <div class="header">
+                  <div>
+                    Authorised Main Dealer: TVS Motor Company Ltd.<br>
+                    Registered office: 'JOGPREET' Asher Estate, Near Ichhamani Lawns,<br>
+                    Upnagar, Nashik Road, Nashik - 422101<br>
+                    Phone: 7498903672
+                  </div>
+                </div>
+                <div class="divider"></div>
+                <div class="customer-info">
+                  <div><strong>Customer Name:</strong> ${ledgerData.customerDetails?.name || ''}</div>
+                  <div><strong>Ledger Date:</strong> ${ledgerData.ledgerDate || new Date().toLocaleDateString('en-GB')}</div>
+                  <div><strong>Customer Address:</strong> ${ledgerData.customerDetails?.address || ''}</div>
+                  <div><strong>Customer Phone:</strong> ${ledgerData.customerDetails?.phone || ''}</div>
+                  <div><strong>Chassis No:</strong> ${ledgerData.vehicleDetails?.chassisNo || ''}</div>
+                  <div><strong>Engine No:</strong> ${ledgerData.vehicleDetails?.engineNo || ''}</div>
+                  <div><strong>Finance Name:</strong> ${ledgerData.financeDetails?.financer || '---Select Financer Name---'}</div>
+                  <div><strong>Sale Executive:</strong> ${ledgerData.salesExecutive || ''}</div>
+                </div>
+                
+                <table>
+                  <thead>
+                    <tr>
+                      <th width="15%">Date</th>
+                      <th width="35%">Description</th>
+                      <th width="15%">Receipt/VC No</th>
+                      <th width="10%" class="text-right">Credit (₹)</th>
+                      <th width="10%" class="text-right">Debit (₹)</th>
+                      <th width="15%" class="text-right">Balance (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${ledgerData.entries
+                      ?.map(
+                        (entry) => `
+                      <tr>
+                        <td>${entry.date}</td>
+                        <td>${entry.description || ''}</td>
+                        <td>${entry.receiptNo || ''}</td>
+                        <td class="text-right">${entry.credit ? entry.credit.toLocaleString('en-IN') : '-'}</td>
+                        <td class="text-right">${entry.debit ? entry.debit.toLocaleString('en-IN') : '-'}</td>
+                        <td class="text-right">${entry.balance ? entry.balance.toLocaleString('en-IN') : '-'}</td>
+                      </tr>
+                    `
+                      )
+                      .join('')}
+                    <tr>
+                      <td colspan="3" class="text-left"><strong>Total</strong></td>
+                      <td class="text-right"><strong>${ledgerData.totals?.totalCredit?.toLocaleString('en-IN') || '0'}</strong></td>
+                      <td class="text-right"><strong>${ledgerData.totals?.totalDebit?.toLocaleString('en-IN') || '0'}</strong></td>
+                      <td class="text-right"><strong>${ledgerData.totals?.finalBalance?.toLocaleString('en-IN') || '0'}</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+                
+                <div class="footer">
+                  <div class="footer-left">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(ledgerUrl)}" 
+                         class="qr-code" 
+                         alt="QR Code" />
+                  </div>
+                  <div class="footer-right">
+                    <p>For, Gandhi TVS</p>
+                    <p>Authorised Signatory</p>
+                  </div>
+                </div>
+              </div>
+              
+              <script>
+                window.onload = function() {
+                  setTimeout(() => {
+                    window.print();
+                  }, 300);
+                };
+              </script>
+            </body>
+          </html>
+        `);
+    } catch (err) {
+      console.error('Error fetching ledger:', err);
+      setError('Failed to load ledger. Please try again.');
+    }
+  };
+
+  return (
+    <div>
+      <h4>Customer Ledger</h4>
+      <div className="table-container">
+        {error && <div className="error-message">{error}</div>}
+        <div className="table-header">
+          <div className="search-icon-data">
+            <input type="text" placeholder="Search.." onChange={(e) => handleFilter(e.target.value, getDefaultSearchFields('financer'))} />
+            <SearchOutlinedIcon />
+          </div>
+        </div>
+        <div className="table-responsive">
+          <div className="table-wrapper">
+            <table className="responsive-table" style={{ overflow: 'auto' }}>
+              <thead className="table-header-fixed">
+                <tr>
+                  <th>Sr.no</th>
+                  <th>Booking ID</th>
+                  <th>Model Name</th>
+                  <th>Booking Date</th>
+                  <th>Customer Name</th>
+                  <th>Chassis Number</th>
+                  <th>Total</th>
+                  <th>Received</th>
+                  <th>Balance</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.length === 0 ? (
+                  <tr>
+                    <td colSpan="10" style={{ color: 'red' }}>
+                      No ledger details available
+                    </td>
+                  </tr>
+                ) : (
+                  currentRecords.map((booking, index) => (
+                    <tr key={index}>
+                      <td>{index + 1}</td>
+                      <td>{booking.bookingNumber}</td>
+                      <td>{booking.model?.model_name || ''}</td>
+                      <td>{booking.createdAt ? new Date(booking.createdAt).toLocaleDateString('en-GB') : ''}</td>
+                      <td>{booking.customerDetails?.name || ''}</td>
+                      <td>{booking.chassisNumber || ''}</td>
+                      <td>{booking.discountedAmount?.toLocaleString('en-IN') || '0'}</td>
+                      <td>{booking.receivedAmount?.toLocaleString('en-IN') || '0'}</td>
+                      <td>{booking.balanceAmount?.toLocaleString('en-IN') || '0'}</td>
+                      <td>
+                        <button className="action-button" onClick={() => handleViewLedger(booking)}>
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <PaginationOptions />
+      </div>
+    </div>
+  );
+};
+
+export default ViewLedgers;

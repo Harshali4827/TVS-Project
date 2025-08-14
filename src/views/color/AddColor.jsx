@@ -12,7 +12,6 @@ import '../../css/offer.css';
 function AddColor() {
   const [formData, setFormData] = useState({
     name: '',
-    hex_code: '',
     models: []
   });
   const [errors, setErrors] = useState({});
@@ -72,7 +71,6 @@ function AddColor() {
     let formErrors = {};
 
     if (!formData.name) formErrors.name = 'This field is required';
-    if (!formData.hex_code) formErrors.hex_code = 'This field is required';
     if (formData.models.length === 0) {
       formErrors.models = 'Please select at least one model';
     }
@@ -85,7 +83,6 @@ function AddColor() {
     try {
       const payload = {
         name: formData.name,
-        hex_code: formData.hex_code,
         models: formData.models
       };
 
@@ -130,20 +127,6 @@ function AddColor() {
                   <CFormInput type="text" name="name" value={formData.name} onChange={handleChange} />
                 </CInputGroup>
                 {errors.name && <p className="error">{errors.name}</p>}
-              </div>
-
-              <div className="input-box">
-                <div className="details-container">
-                  <span className="details">Hex code</span>
-                  <span className="required">*</span>
-                </div>
-                <CInputGroup>
-                  <CInputGroupText className="input-icon">
-                    <CIcon icon={cilLocationPin} />
-                  </CInputGroupText>
-                  <CFormInput type="text" name="hex_code" value={formData.hex_code} onChange={handleChange} />
-                </CInputGroup>
-                {errors.hex_code && <p className="error">{errors.hex_code}</p>}
               </div>
             </div>
 

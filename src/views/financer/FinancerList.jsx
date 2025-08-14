@@ -59,7 +59,7 @@ const FinancersList = () => {
         showSuccess();
       } catch (error) {
         console.log(error);
-        showError();
+        showError(error);
       }
     }
   };
@@ -81,7 +81,7 @@ const FinancersList = () => {
               <tr>
                 <th>Sr.no</th>
                 <th>Name</th>
-                <th>Status</th>
+                {/* <th>Status</th> */}
                 <th>Action</th>
               </tr>
             </thead>
@@ -97,7 +97,7 @@ const FinancersList = () => {
                   <tr key={index}>
                     <td>{index + 1}</td>
                     <td>{financer.name}</td>
-                    <td>
+                    {/* <td>
                       <span className={`status-text ${financer.is_active}`}>
                         {financer.is_active === true ? (
                           <FaCheckCircle className="status-icon active-icon" />
@@ -105,7 +105,7 @@ const FinancersList = () => {
                           <FaTimesCircle className="status-icon inactive-icon" />
                         )}
                       </span>
-                    </td>
+                    </td> */}
 
                     <td>
                       <button className="action-button" onClick={(event) => handleClick(event, financer.id)}>
