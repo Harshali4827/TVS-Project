@@ -39,6 +39,8 @@ const BookingList = () => {
   const [selectedBookingForChassis, setSelectedBookingForChassis] = useState(null);
   const [chassisLoading, setChassisLoading] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState();
+  const [isUpdateChassis, setIsUpdateChassis] = useState(false);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -52,6 +54,7 @@ const BookingList = () => {
       console.log('Error fetching data', error);
     }
   };
+
 
   const handleClick = (event, id) => {
     setAnchorEl(event.currentTarget);
@@ -131,28 +134,60 @@ const BookingList = () => {
     }
   };
 
+  const handleUpdateChassis = (bookingId) => {
+    setSelectedBookingForChassis(bookingId);
+    setIsUpdateChassis(true);
+    setShowChassisModal(true);
+    handleClose();
+  };
+
   const handleAllocateChassis = async (bookingId) => {
     setSelectedBookingForChassis(bookingId);
     setShowChassisModal(true);
     handleClose();
   };
 
-  const handleSaveChassisNumber = async (chassisNumber) => {
+  // const handleSaveChassisNumber = async (chassisNumber) => {
+  //   try {
+  //     setChassisLoading(true);
+  //     await axiosInstance.put(`/bookings/${selectedBookingForChassis}/allocate`, {
+  //       chassisNumber: chassisNumber.trim()
+  //     });
+  //     showSuccess('Chassis number allocated successfully!');
+  //     fetchData();
+  //     setShowChassisModal(false);
+  //   } catch (error) {
+  //     console.error('Error allocating chassis number:', error);
+  //     showError(error.response?.data?.message || 'Failed to allocate chassis number');
+  //   } finally {
+  //     setChassisLoading(false);
+  //   }
+  // };
+  const handleSaveChassisNumber = async (chassisNumber, reason) => {
     try {
       setChassisLoading(true);
-      await axiosInstance.put(`/bookings/${selectedBookingForChassis}/allocate`, {
-        chassisNumber: chassisNumber.trim()
-      });
-      showSuccess('Chassis number allocated successfully!');
+      const url = isUpdateChassis 
+        ? `/bookings/${selectedBookingForChassis}/allocate`
+        : `/bookings/${selectedBookingForChassis}/allocate`;
+      
+      const payload = isUpdateChassis
+        ? { chassisNumber: chassisNumber.trim(), reason }
+        : { chassisNumber: chassisNumber.trim() };
+
+      await axiosInstance.put(url, payload);
+      
+      showSuccess(`Chassis number ${isUpdateChassis ? 'updated' : 'allocated'} successfully!`);
       fetchData();
       setShowChassisModal(false);
+      setIsUpdateChassis(false);
     } catch (error) {
-      console.error('Error allocating chassis number:', error);
-      showError(error.response?.data?.message || 'Failed to allocate chassis number');
+      console.error(`Error ${isUpdateChassis ? 'updating' : 'allocating'} chassis number:`, error);
+      showError(error.response?.data?.message || `Failed to ${isUpdateChassis ? 'update' : 'allocate'} chassis number`);
     } finally {
       setChassisLoading(false);
     }
   };
+
   return (
     <div className="table-container">
       <div className="table-header">
@@ -300,6 +335,9 @@ const BookingList = () => {
                         {booking.status === 'APPROVED' && (
                           <MenuItem onClick={() => handleAllocateChassis(booking.id)}>Allocate Chassis</MenuItem>
                         )}
+                         {booking.status === 'ALLOCATED' && (
+    <MenuItem onClick={() => handleUpdateChassis(booking.id)}>Update Chassis</MenuItem>
+  )}
                       </Menu>
                     </td>
                   </tr>
@@ -336,15 +374,19 @@ const BookingList = () => {
         onClose={() => setShowChassisModal(false)}
         onSave={handleSaveChassisNumber}
         isLoading={chassisLoading}
-      /> */}
-
-      <ChassisNumberModal
-        show={showChassisModal}
-        onClose={() => setShowChassisModal(false)}
-        onSave={handleSaveChassisNumber}
-        isLoading={chassisLoading}
         booking={data.find((b) => b._id === selectedBookingForChassis)}
-      />
+      /> */}
+      <ChassisNumberModal
+    show={showChassisModal}
+    onClose={() => {
+      setShowChassisModal(false);
+      setIsUpdateChassis(false);
+    }}
+    onSave={handleSaveChassisNumber}
+    isLoading={chassisLoading}
+    booking={data.find((b) => b._id === selectedBookingForChassis)}
+    isUpdate={isUpdateChassis}
+  />
     </div>
   );
 };

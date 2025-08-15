@@ -39,6 +39,8 @@ const DebitNote = () => {
     setShowModal(true);
   };
   return (
+    <div>
+      <h4>Debit Note</h4>
     <div className="table-container">
       {error && <div className="error-message">{error}</div>}
       <div className="table-header">
@@ -97,6 +99,7 @@ const DebitNote = () => {
         </div>
       </div>
       <PaginationOptions />
+    </div>
     </div>
   );
 };

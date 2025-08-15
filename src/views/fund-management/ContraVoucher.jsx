@@ -63,9 +63,10 @@ function ContraVoucher() {
     if (!formData.contraType) formErrors.contraType = 'This field is required';
     if (!formData.amount) formErrors.amount = 'This field is required';
     if (!formData.voucherType) formErrors.voucherType = 'This field is required';
-    if (!formData.bankLocation) formErrors.bankLocation = 'This field is required';
     if (!formData.branch) formErrors.branch = 'This field is required';
-
+    if (formData.contraType === 'cash at bank' && !formData.bankLocation) {
+      formErrors.bankLocation = 'This field is required';
+    }
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       return;
@@ -184,7 +185,7 @@ function ContraVoucher() {
                   <CFormInput type="text" name="remark" value={formData.remark} onChange={handleChange} />
                 </CInputGroup>
               </div>
-              <div className="input-box">
+              {/* <div className="input-box">
                 <div className="details-container">
                   <span className="details">Bank Location</span>
                   <span className="required">*</span>
@@ -203,7 +204,29 @@ function ContraVoucher() {
                   </CFormSelect>
                 </CInputGroup>
                 {errors.bankLocation && <p className="error">{errors.bankLocation}</p>}
-              </div>
+              </div> */}
+                 {formData.contraType === 'cash at bank' && (
+                <div className="input-box">
+                  <div className="details-container">
+                    <span className="details">Bank Location</span>
+                    <span className="required">*</span>
+                  </div>
+                  <CInputGroup>
+                    <CInputGroupText className="input-icon">
+                      <CIcon icon={cilBank} />
+                    </CInputGroupText>
+                    <CFormSelect name="bankLocation" value={formData.bankLocation} onChange={handleChange}>
+                      <option value="">-Select-</option>
+                      {banks.map((bank) => (
+                        <option key={bank._id} value={bank.name}>
+                          {bank.name}
+                        </option>
+                      ))}
+                    </CFormSelect>
+                  </CInputGroup>
+                  {errors.bankLocation && <p className="error">{errors.bankLocation}</p>}
+                </div>
+              )}
             </div>
             <FormButtons onCancel={handleCancel} />
           </form>

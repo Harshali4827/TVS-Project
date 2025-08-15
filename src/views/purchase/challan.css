@@ -249,22 +249,6 @@
     display: none;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 .model-accessories-container {
   margin-top: 15px;
   padding: 15px;
@@ -304,3 +288,31 @@
   margin: 20px 0;
   text-align: center;
 }
+
+
+
+ .modal-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.challan-modal .modal-dialog {
+  max-width: 1200px;
+}
+
+.modal-dialog-scrollable .modal-content {
+  max-height: 90vh;
+}
+
+.challan-card {
+  border: none;
+  box-shadow: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 1200px) {
+  .modal-dialog {
+    margin: 1rem auto;
+  }
+} 

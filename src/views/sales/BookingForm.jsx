@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../../css/form.css';
-import { CInputGroup, CInputGroupText, CFormInput, CFormSelect, CFormSwitch, CFormCheck } from '@coreui/react';
+import { CInputGroup, CInputGroupText, CFormInput, CFormSelect, CFormSwitch, CFormCheck, CButton } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
 import {
   cilBank,
@@ -98,8 +98,70 @@ function BookingForm() {
   const [selectedGcRate, setSelectedGcRate] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
 
+  const [selectedBroker, setSelectedBroker] = useState(null);
+const [otpSent, setOtpSent] = useState(false);
+const [otpVerified, setOtpVerified] = useState(false);
+const [otp, setOtp] = useState('');
+const [otpError, setOtpError] = useState('');
+
+
   const navigate = useNavigate();
   const { id } = useParams();
+
+
+
+  const handleBrokerChange = (e) => {
+  const brokerId = e.target.value;
+  const broker = brokers.find(b => b._id === brokerId);
+  setSelectedBroker(broker);
+  setFormData(prev => ({ ...prev, broker_id: brokerId }));
+  setErrors(prev => ({ ...prev, broker_id: '' }));
+  setOtpSent(false);
+  setOtpVerified(false);
+  setOtp('');
+};
+
+// Add these OTP-related functions
+const handleSendOtp = async () => {
+  try {
+    if (!selectedBroker) return;
+    
+    const response = await axiosInstance.post(`/brokers/${selectedBroker._id}/send-otp`);
+    if (response.data.success) {
+      setOtpSent(true);
+      setOtpVerified(false);
+      setOtp('');
+      showFormSubmitToast('OTP sent successfully to broker');
+    } else {
+      showFormSubmitError(response.data.message || 'Failed to send OTP');
+    }
+  } catch (error) {
+    console.error('Error sending OTP:', error);
+    showFormSubmitError(error.response?.data?.message || 'Error sending OTP');
+  }
+};
+
+const handleVerifyOtp = async () => {
+  try {
+    if (!selectedBroker || !otp) return;
+    
+    const response = await axiosInstance.post('/brokers/verify-otp', {
+      brokerId: selectedBroker._id,
+      otp
+    });
+    
+    if (response.data.success) {
+      setOtpVerified(true);
+      setOtpError('');
+      showFormSubmitToast('OTP verified successfully');
+    } else {
+      setOtpError(response.data.message || 'Invalid OTP');
+    }
+  } catch (error) {
+    console.error('Error verifying OTP:', error);
+    setOtpError(error.response?.data?.message || 'Error verifying OTP');
+  }
+};
 
   useEffect(() => {
     if (id) {
@@ -234,6 +296,10 @@ function BookingForm() {
           newErrors[field] = 'This field is required for exchange';
         }
       });
+       // Add OTP verification check
+    if (selectedBroker?.otp_required && !otpVerified) {
+      newErrors.otpVerification = 'OTP verification is required for this broker';
+    }
       if (brokers.length === 0) {
         newErrors.broker_id = 'No brokers available for this branch';
       }
@@ -732,7 +798,8 @@ function BookingForm() {
           broker_id: formData.broker_id,
           exchange_price: formData.exchange_price ? parseFloat(formData.exchange_price) : 0,
           vehicle_number: formData.vehicle_number || '',
-          chassis_number: formData.chassis_number || ''
+          chassis_number: formData.chassis_number || '',
+          ...(selectedBroker?.otp_required && otpVerified && { otp })
         })
       }
     };
@@ -1328,28 +1395,86 @@ function BookingForm() {
                     </CInputGroup>
                     {errors.is_exchange && <p className="error">{errors.is_exchange}</p>}
                   </div>
+
                   {formData.is_exchange === 'true' && (
                     <>
                       <div className="input-box">
-                        <div className="details-container">
-                          <span className="details">Exchange Broker</span>
-                          <span className="required">*</span>
-                        </div>
-                        <CInputGroup>
-                          <CInputGroupText className="input-icon">
-                            <CIcon icon={cilPeople} />
-                          </CInputGroupText>
-                          <CFormSelect name="broker_id" value={formData.broker_id} onChange={handleChange}>
-                            <option value="">-Select-</option>
-                            {brokers.map((broker) => (
-                              <option key={broker._id} value={broker._id}>
-                                {broker.name}
-                              </option>
-                            ))}
-                          </CFormSelect>
-                        </CInputGroup>
-                        {errors.broker_id && <p className="error">{errors.broker_id}</p>}
-                      </div>
+      <div className="details-container">
+        <span className="details">Exchange Broker</span>
+        <span className="required">*</span>
+      </div>
+      <CInputGroup>
+        <CInputGroupText className="input-icon">
+          <CIcon icon={cilPeople} />
+        </CInputGroupText>
+        <CFormSelect 
+          name="broker_id" 
+          value={formData.broker_id} 
+          onChange={handleBrokerChange}
+        >
+          <option value="">-Select-</option>
+          {brokers.map((broker) => (
+            <option key={broker._id} value={broker._id}>
+              {broker.name} {broker.otp_required ? '(OTP Required)' : ''}
+            </option>
+          ))}
+        </CFormSelect>
+      </CInputGroup>
+      {errors.broker_id && <p className="error">{errors.broker_id}</p>}
+    </div>
+
+    {selectedBroker && (
+      <div className="input-box">
+        <div className="details-container">
+          <span className="details">Broker Mobile</span>
+        </div>
+        <CInputGroup>
+          <CInputGroupText className="input-icon">
+            <CIcon icon={cilPhone} />
+          </CInputGroupText>
+          <CFormInput 
+            value={selectedBroker.mobile} 
+            readOnly 
+          />
+        </CInputGroup>
+      </div>
+    )}
+
+    {selectedBroker?.otp_required && (
+      <div className="input-box">
+        <div className="details-container">
+          <span className="details">OTP Verification</span>
+          <span className="required">*</span>
+        </div>
+        {!otpSent ? (
+          <CButton color="primary" onClick={handleSendOtp}>
+            Send OTP
+          </CButton>
+        ) : (
+          <>
+            <CInputGroup>
+              <CInputGroupText className="input-icon">
+                <CIcon icon={cilFingerprint} />
+              </CInputGroupText>
+              <CFormInput
+                placeholder="Enter OTP"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+              />
+              <CButton color="success" onClick={handleVerifyOtp}>
+                Verify OTP
+              </CButton>
+            </CInputGroup>
+            {otpError && <p className="error">{otpError}</p>}
+          </>
+        )}
+        {otpVerified && (
+          <div className="alert alert-success mt-2">
+            OTP verified successfully
+          </div>
+        )}
+      </div>
+    )}
 
                       <div className="input-box">
                         <div className="details-container">
@@ -1590,34 +1715,6 @@ function BookingForm() {
                   </div>
                 </div>
                 <div>
-                  {/* {selectedModelHeaders.length > 0 && (
-                    <div className="model-options-section">
-                      <h5 className="section-title">Model Options</h5>
-                      <div className="options-grid">
-                        {selectedModelHeaders.map((header) => (
-                          <div key={header.header_id} className={`option-card ${header.is_mandatory ? 'mandatory' : ''}`}>
-                            <div className="option-header">
-                              <CFormCheck
-                                id={`header-${header.header_id}`}
-                                checked={formData.optionalComponents.includes(header.header_id)}
-                                onChange={(e) => handleHeaderSelection(header.header_id, e.target.checked)}
-                                disabled={header.is_mandatory}
-                              />
-                              <label htmlFor={`header-${header.header_id}`}>
-                                <span className="option-name">{header.header_key}</span>
-                              </label>
-                            </div>
-
-                            <div className="option-details">
-                              <span className="price">₹{header.value.toLocaleString()}</span>
-                              {header.metadata?.gst_rate > 0 && <span className="gst-rate">(incl. {header.metadata.gst_rate}% GST)</span>}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )} */}
-
                   {selectedModelHeaders.length > 0 && (
                     <div className="model-headers-section">
                       <h5>Model Options</h5>

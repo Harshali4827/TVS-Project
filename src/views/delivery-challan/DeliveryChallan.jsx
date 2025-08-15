@@ -56,20 +56,6 @@ function DeliveryChallan() {
       setLoading(false);
     }
   };
-
-  // const handlePrint = () => {
-  //   if (!bookingData) {
-  //     setError('Please enter a valid chassis number');
-  //     return;
-  //   }
-
-  //   const printWindow = window.open('', '_blank');
-  //   printWindow.document.write(generateDeliveryChallanHTML(bookingData, activeTab === 0 ? 'Customer Copy' : 'Office Copy'));
-  //   printWindow.document.close();
-  //   printWindow.focus();
-  //   printWindow.print();
-  // };
-
   const handlePrint = () => {
     if (!bookingData) {
       setError('Please enter a valid chassis number');
@@ -170,7 +156,6 @@ tr.data-row td:nth-child(4) {
             margin-top: 10mm;
           }
           .account-details{
-          text-align:right;
           color:#555555;
           font-weight:bold;
           }
@@ -270,7 +255,12 @@ tr.data-row td:nth-child(4) {
               <td>Grand Total : <span class="bold">₹${data.discountedAmount}</span></td>
             </tr>
           </table>
-           <div class='account-details'>ACC.DETAILS:</div>
+           <div class='account-details'>ACC.DETAILS:
+ ${data.accessories
+      .map((accessory) => (accessory.accessory ? accessory.accessory.name : ''))
+      .filter((name) => name)
+      .join(', ')}
+           </div>
           <div class="signature-box">
             <div><b>Authorised Signature</b></div>
           </div>
@@ -353,7 +343,12 @@ tr.data-row td:nth-child(4) {
               </tr>
             </table>
 
-            <div class='account-details'>ACC.DETAILS:</div>
+            <div class='account-details'>ACC.DETAILS:
+             ${data.accessories
+      .map((accessory) => (accessory.accessory ? accessory.accessory.name : ''))
+      .filter((name) => name)
+      .join(', ')}
+            </div>
             <div class="signature-box">
               <div><b>Authorised Signature</b></div>
             </div>
@@ -373,7 +368,7 @@ tr.data-row td:nth-child(4) {
               any reason.
             </p>
 
-            <div style="margin-top: 15mm;">
+            <div>
               <p class="bold">Customer Signature</p>
             </div>
 

@@ -583,9 +583,12 @@ const ViewBooking = ({ open, onClose, booking, refreshData }) => {
                 onSave={handleChassisAllocation}
                 isLoading={chassisLoading}
               />
+              {booking.status === 'APPROVED' && (
               <button className="btn btn-info me-2" onClick={() => setShowChassisModal(true)} disabled={booking?.status !== 'APPROVED'}>
                 Allocate Chassis
               </button>
+              )
+              }
               {booking?.documentStatus?.kyc?.status === 'PENDING' && (
                 <>
                   <button className="btn btn-success me-2" onClick={() => handleKycStatusUpdate('APPROVED')} disabled={kycActionLoading}>

@@ -9,29 +9,69 @@ const VerifyOTP = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
+  // const handleVerify = async (e) => {
+  //   e.preventDefault();
+  //   setIsSubmitting(true);
+  //   setErrorMessage('');
+
+  //   try {
+  //     const mobile = localStorage.getItem('mobile');
+  //     const response = await axiosInstance.post('/auth/verify-otp', { mobile, otp });
+
+  //     if (response.data.success) {
+  //       localStorage.setItem('token', response.data.token);
+  //       console.log('token', response.data.token);
+  //       localStorage.setItem('user', JSON.stringify(response.data.user));
+  //       localStorage.setItem('userPermissions', JSON.stringify(response.user.permissions));
+  //       console.log('user',response.data.user);
+  //       console.log('userPermissions',response.user.permissions)
+  //       navigate('/home');
+  //     } else {
+  //       setErrorMessage('Invalid OTP. Please try again.');
+  //     }
+  //   } catch (error) {
+  //     setErrorMessage(error.response?.data?.message || 'Verification failed. Please try again.');
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
+
   const handleVerify = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setErrorMessage('');
+  e.preventDefault();
+  setIsSubmitting(true);
+  setErrorMessage('');
 
-    try {
-      const mobile = localStorage.getItem('mobile');
-      const response = await axiosInstance.post('/auth/verify-otp', { mobile, otp });
+  try {
+    const mobile = localStorage.getItem('mobile');
+    const response = await axiosInstance.post('/auth/verify-otp', { mobile, otp });
 
-      if (response.data.success) {
-        localStorage.setItem('token', response.data.token);
-        console.log('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        navigate('/home');
-      } else {
-        setErrorMessage('Invalid OTP. Please try again.');
-      }
-    } catch (error) {
-      setErrorMessage(error.response?.data?.message || 'Verification failed. Please try again.');
-    } finally {
-      setIsSubmitting(false);
+    if (response.data.success) {
+      // Store token
+      localStorage.setItem('token', response.data.token);
+      
+      // Store user data
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      
+      // CORRECTED: Store permissions from response.data.user.permissions
+      localStorage.setItem('userPermissions', JSON.stringify(response.data.user.permissions));
+      
+      console.log('Login successful', {
+        token: response.data.token,
+        user: response.data.user,
+        permissions: response.data.user.permissions
+      });
+
+      navigate('/home');
+    } else {
+      setErrorMessage('Invalid OTP. Please try again.');
     }
-  };
+  } catch (error) {
+    console.error('OTP verification error:', error);
+    setErrorMessage(error.response?.data?.message || 'Verification failed. Please try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div

@@ -11,7 +11,7 @@ import FormButtons from 'utils/FormButtons';
 function CashVoucher() {
   const [formData, setFormData] = useState({
     recipientName: '',
-    voucherType: '',
+    voucherType: 'debit',
     expenseType: '',
     amount: '',
     remark: '',
@@ -87,9 +87,9 @@ function CashVoucher() {
 
     try {
       await axiosInstance.post('/cash-vouchers', formData);
-      await showFormSubmitToast('Cash Voucher added successfully!', () => navigate('/cash-approval'));
+      await showFormSubmitToast('Cash Voucher added successfully!', () => navigate('/cash-receipt'));
 
-      navigate('/cash-approval');
+      navigate('/cash-receipt');
     } catch (error) {
       console.error('Error details:', error);
       showFormSubmitError(error);
@@ -97,7 +97,7 @@ function CashVoucher() {
   };
 
   const handleCancel = () => {
-    navigate('/cash-approval');
+    navigate('/cash-receipt');
   };
   return (
     <div>
@@ -152,8 +152,7 @@ function CashVoucher() {
                     <CIcon icon={cilUser} />
                   </CInputGroupText>
                   <CFormSelect type="text" name="voucherType" value={formData.voucherType} onChange={handleChange}>
-                    <option value="">-Select</option>
-                    <option value="credit">Credit</option>
+                    {/* <option value="">-Select</option> */}
                     <option value="debit">Debit</option>
                   </CFormSelect>
                 </CInputGroup>

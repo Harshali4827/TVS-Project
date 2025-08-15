@@ -19,7 +19,7 @@ function InwardStock() {
     chassisNumber: '',
     engineNumber: '',
     motorNumber: '',
-    chargerNumber: ''
+    chargerNumber: '',
   });
 
   const [errors, setErrors] = useState({});
@@ -33,22 +33,41 @@ function InwardStock() {
 
   useEffect(() => {
     if (id) {
-      fetchInventory(id);
+      fetchInward(id);
     }
   }, [id]);
 
-  const fetchInventory = async (id) => {
-    try {
-      const res = await axiosInstance.get(`/vehicles/${id}`);
-      setFormData({
-        ...res.data.data.vehicle,
-        model: res.data.data.vehicle.model || { _id: '', model_name: '', type: '' },
-        color: res.data.data.vehicle.color || { id: '' }
-      });
-    } catch (error) {
-      console.error('Error fetching inward:', error);
-    }
-  };
+  // const fetchInventory = async (id) => {
+  //   try {
+  //     const res = await axiosInstance.get(`/vehicles/${id}`);
+  //     setFormData({
+  //       ...res.data.data.vehicle,
+  //       model: res.data.data.vehicle.model || { _id: '', model_name: '', type: '' },
+  //       color: res.data.data.vehicle.color || { id: '' }
+  //     });
+  //   } catch (error) {
+  //     console.error('Error fetching inward:', error);
+  //   }
+  // };
+
+  const fetchInward = async (id) => {
+  try {
+    const res = await axiosInstance.get(`/vehicles/${id}`);
+    const vehicle = res.data.data.vehicle;
+    
+    setFormData({
+      ...vehicle,
+      model: {
+        _id: vehicle.model,
+        model_name: vehicle.modelName
+      },
+      color: vehicle.color || { id: '', name: '' },
+      unloadLocation: vehicle.unloadLocation?._id || '' 
+    });
+  } catch (error) {
+    console.error('Error fetching inward:', error);
+  }
+};
 
   useEffect(() => {
     const fetchModels = async () => {
@@ -279,7 +298,7 @@ function InwardStock() {
                 {errors.unloadLocation && <p className="error">{errors.unloadLocation}</p>}
               </div>
 
-              <div className="input-box">
+              {/* <div className="input-box">
                 <div className="details-container">
                   <span className="details">Inward Date</span>
                   <span className="required">*</span>
@@ -290,8 +309,26 @@ function InwardStock() {
                   </CInputGroupText>
                   <CFormInput type="date" value={inwardDate} readOnly />
                 </CInputGroup>
-              </div>
-
+              </div> */}
+              
+              {!id && (
+  <div className="input-box">
+    <div className="details-container">
+      <span className="details">Inward Date</span>
+      <span className="required">*</span>
+    </div>
+    <CInputGroup>
+      <CInputGroupText className="input-icon">
+        <CIcon icon={cilLocationPin} />
+      </CInputGroupText>
+      <CFormInput 
+        type="date" 
+        value={new Date().toISOString().split('T')[0]} 
+        readOnly 
+      />
+    </CInputGroup>
+  </div>
+)}
               <div className="input-box">
                 <div className="details-container">
                   <span className="details">Type</span>
@@ -331,31 +368,6 @@ function InwardStock() {
                 {errors.model && <p className="error">{errors.model}</p>}
               </div>
 
-              {/* <div className="input-box">
-                <div className="details-container">
-                  <span className="details">Color</span>
-                  <span className="required">*</span>
-                </div>
-                <CInputGroup>
-                  <CInputGroupText className="input-icon">
-                    <CIcon icon={cilBuilding} />
-                  </CInputGroupText>
-                  <CFormSelect
-                    name="color"
-                    value={formData.color.id}
-                    onChange={handleChange}
-                    disabled={!formData.model._id || availableColors.length === 0}
-                  >
-                    <option value="">-Select a color-</option>
-                    {availableColors.map((color) => (
-                      <option key={color.id} value={color.id}>
-                        {color.name}
-                      </option>
-                    ))}
-                  </CFormSelect>
-                </CInputGroup>
-                {errors.color && <p className="error">{errors.color}</p>}
-              </div> */}
               <div className="input-box">
                 <div className="details-container">
                   <span className="details">Color</span>

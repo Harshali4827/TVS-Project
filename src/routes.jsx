@@ -576,11 +576,6 @@ export const routes = [
       },
       {
         exact: 'true',
-        path: '/insurance-receipts',
-        element: lazy(() => import('./views/insurance/insurance-receipt/InsuranceReceipt'))
-      },
-      {
-        exact: 'true',
         path: '/insurance-list',
         element: lazy(() => import('./views/insurance/insurance-details/InsuranceList'))
       },

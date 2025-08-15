@@ -152,7 +152,7 @@ const InventoryList = () => {
                 <th>Charger No</th>
                 <th>QR Code</th>
                 <th>Current Status</th>
-                {/* <th>Action</th> */}
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -180,8 +180,11 @@ const InventoryList = () => {
                     <td>
                       {vehicle.qrCode ? <QRCode value={vehicle.qrCode} size={50} bgColor="#FFFFFF" fgColor="#000000" level="H" /> : 'N/A'}
                     </td>
-                    <td>{vehicle.status}</td>
-                    {/* <td>
+                    <td>
+                      {/* {vehicle.status} */}
+                       <span className={`status-badge ${vehicle.status.toLowerCase()}`}>{vehicle.status}</span>
+                    </td>
+                    <td>
                       <button className="action-button" onClick={(event) => handleClick(event, vehicle.id)}>
                         Action
                       </button>
@@ -191,7 +194,7 @@ const InventoryList = () => {
                         </Link>
                         <MenuItem onClick={() => handleDelete(vehicle.id)}>Delete</MenuItem>
                       </Menu>
-                    </td> */}
+                    </td>
                   </tr>
                 ))
               )}

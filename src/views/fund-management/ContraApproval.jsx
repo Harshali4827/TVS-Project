@@ -472,7 +472,7 @@ const handleReject = async (voucherId) => {
       const rejectedVoucher = pendingData.find(item => item._id === voucherId);
       setPendingData(prev => prev.filter(item => item._id !== voucherId));
       setLaterData(prev => [...prev, {...rejectedVoucher, status: 'rejected'}]);
-
+       setRefreshKey(prev => prev + 1);
       Swal.fire('Rejected!', 'Voucher has been rejected.', 'success');
     }
   } catch (error) {

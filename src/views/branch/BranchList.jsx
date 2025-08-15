@@ -82,7 +82,7 @@ const BranchList = () => {
       handleClose();
     } catch (error) {
       console.error('Status toggle error:', error);
-      showError(error.response?.data?.message || 'Failed to update branch status');
+      showError(error || 'Failed to update branch status');
     }
   };
 
