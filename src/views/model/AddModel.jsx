@@ -112,7 +112,7 @@ function AddModel() {
                   <CInputGroupText className="input-icon">
                     <CIcon icon={cilDollar} />
                   </CInputGroupText>
-                  <CFormInput type="text" name="discount" value={formData.model_discount} onChange={handleChange} />
+                  <CFormInput type="number" name="model_discount" value={formData.model_discount} onChange={handleChange} />
                 </CInputGroup>
               </div>
             </div>

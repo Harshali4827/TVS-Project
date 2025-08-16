@@ -1,0 +1,76 @@
+/* Permissions Table Styles */
+.permissions-section {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.permissions-table-container {
+  max-height: 500px;
+  overflow: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+  position: relative;
+}
+
+.permission-table-wrapper {
+  overflow: auto;
+  max-height: 450px;
+}
+
+.permission-table {
+  margin-bottom: 0;
+  min-width: max-content;
+}
+
+.permission-table-header {
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+  z-index: 10;
+}
+
+.sticky-module-header {
+  position: sticky;
+  left: 0;
+  z-index: 11;
+  background-color: #f8f9fa;
+}
+
+.sticky-action-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #f8f9fa;
+}
+
+.sticky-module-cell {
+  position: sticky;
+  left: 0;
+  z-index: 9;
+  background-color: white;
+}
+
+.permission-table-body {
+  position: relative;
+}
+
+.permissions-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Ensure table cells have proper spacing */
+.permission-table td, 
+.permission-table th {
+  padding: 0.75rem;
+  vertical-align: middle;
+  min-width: 100px;
+}
+
+/* Make the first column (module names) slightly wider */
+.permission-table th:first-child,
+.permission-table td:first-child {
+  min-width: 200px;
+}

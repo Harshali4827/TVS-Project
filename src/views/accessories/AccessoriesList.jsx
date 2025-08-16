@@ -101,7 +101,7 @@ const AccessoriesList = () => {
                 <th>Part Number</th>
                 <th>Part Number Status</th>
                 <th>Compatible Models</th>
-                <th>Status</th>
+                {/* <th>Status</th> */}
                 <th>Action</th>
               </tr>
             </thead>
@@ -132,7 +132,7 @@ const AccessoriesList = () => {
                     </td>
 
                     <td>{accessories.applicableModelsDetails?.map((model) => model.model_name).join(', ')}</td>
-                    <td>
+                    {/* <td>
                       <span className={`status-text ${accessories.status}`}>
                         {accessories.status === 'active' ? (
                           <>
@@ -144,7 +144,7 @@ const AccessoriesList = () => {
                           </>
                         )}
                       </span>
-                    </td>
+                    </td> */}
                     <td>
                       <button className="action-button" onClick={(event) => handleClick(event, accessories.id)}>
                         Action

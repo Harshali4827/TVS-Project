@@ -15,7 +15,8 @@ import {
   axiosInstance,
   CopyToClipboard,
   FaCheckCircle,
-  FaTimesCircle
+  FaTimesCircle,
+  confirmDelete
 } from 'utils/tableImports';
 import { faFilter } from '@fortawesome/free-solid-svg-icons';
 import { exportToModelPdf } from 'utils/tableExports';
@@ -139,7 +140,7 @@ const ModelList = () => {
 
   const handleStatusUpdate = async (modelId, newStatus) => {
     try {
-      await axiosInstance.patch(`/models/${modelId}/status`, {
+      await axiosInstance.put(`/models/${modelId}/status`, {
         status: newStatus
       });
       setData((prevData) => prevData.map((model) => (model._id === modelId ? { ...model, status: newStatus } : model)));
@@ -151,6 +152,7 @@ const ModelList = () => {
       showError(error.message);
     }
   };
+
   const handleDelete = async (id) => {
     const result = await confirmDelete();
     if (result.isConfirmed) {

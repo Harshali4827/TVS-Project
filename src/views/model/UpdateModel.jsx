@@ -159,7 +159,7 @@ const UpdateModel = () => {
       const model = res.data.data.model;
       setFormData({
         model_name: model.model_name,
-        model_discount: model.discount || 0, // Assuming discount is part of the model data
+        model_discount: model.discount || 0,
         prices: model.prices
       });
     } catch (err) {
@@ -187,7 +187,7 @@ const UpdateModel = () => {
     try {
       const payload = {
         model_name: formData.model_name,
-        discount: Number(formData.model_discount), // Include discount in payload
+        discount: Number(formData.model_discount),
         prices: formData.prices.map(({ header_id, value }) => ({
           header_id,
           value,
@@ -195,7 +195,7 @@ const UpdateModel = () => {
         }))
       };
 
-      await axiosInstance.patch(`/models/${id}/prices`, payload);
+      await axiosInstance.put(`/models/${id}/prices`, payload);
       showFormSubmitToast('Model updated successfully!');
       navigate('/model/model-list');
     } catch (err) {

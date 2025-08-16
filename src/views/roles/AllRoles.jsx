@@ -99,7 +99,7 @@ const AllRoles = () => {
                   <th>Description</th>
                   <th>Modules</th>
                   <th>Actions</th>
-                  <th>Status</th>
+                  {/* <th>Status</th> */}
                   <th>Action</th>
                 </tr>
               </thead>
@@ -144,11 +144,11 @@ const AllRoles = () => {
                             'No actions'
                           )}
                         </td>
-                        <td>
+                        {/* <td>
                           <span className={`status-badge ${role.is_active ? 'active' : 'inactive'}`}>
                             {role.is_active ? 'Active' : 'Inactive'}
                           </span>
-                        </td>
+                        </td> */}
                         <td>
                           <button className="action-button" onClick={(event) => handleClick(event, role._id)}>
                             Action

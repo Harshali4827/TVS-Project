@@ -296,7 +296,6 @@ const handleVerifyOtp = async () => {
           newErrors[field] = 'This field is required for exchange';
         }
       });
-       // Add OTP verification check
     if (selectedBroker?.otp_required && !otpVerified) {
       newErrors.otpVerification = 'OTP verification is required for this broker';
     }
@@ -468,60 +467,50 @@ const handleVerifyOtp = async () => {
     fetchBranches();
   }, []);
 
-  // useEffect(() => {
-  //   const fetchSalesExecutive = async () => {
-  //     try {
-  //       const response = await axiosInstance.get('/users');
-  //       const filteredExecutives = formData.branch
-  //         ? response.data.data.filter(
-  //             (user) =>
-  //               user.branch === formData.branch &&
-  //               user.roles.some((role) => role.name === 'SALES_EXECUTIVE' || role.name === 'Sales Executive') &&
-  //               user.isActive === true
-  //           )
-  //         : [];
-  //       setSalesExecutives(filteredExecutives);
-  //       if (formData.branch && filteredExecutives.length === 0) {
-  //         setErrors((prev) => ({
-  //           ...prev,
-  //           sales_executive: 'No sales executives available for this branch'
-  //         }));
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching sales executive:', error);
-  //       showFormSubmitError(error.message);
-  //     }
-  //   };
-  //   fetchSalesExecutive();
-  // }, [formData.branch]);
 
   useEffect(() => {
-    const fetchSalesExecutive = async () => {
-      try {
-        const response = await axiosInstance.get('/users');
-        const filteredExecutives = formData.branch
-          ? response.data.data.filter(
-              (user) =>
-                user.branch === formData.branch &&
-                user.roles.some((role) => role.name === 'SALES_EXECUTIVE' || role.name === 'Sales Executive') &&
-                user.isActive === true &&
-                user.isFrozen === false
-            )
-          : [];
-        setSalesExecutives(filteredExecutives);
-        if (formData.branch && filteredExecutives.length === 0) {
-          setErrors((prev) => ({
-            ...prev,
-            sales_executive: 'No active, unfrozen sales executives available for this branch'
-          }));
-        }
-      } catch (error) {
-        console.error('Error fetching sales executive:', error);
-        showFormSubmitError(error.message);
-      }
-    };
+ const fetchSalesExecutive = async () => {
+  try {
+    const response = await axiosInstance.get('/users');
+    console.log('All users:', response.data.data);
+    
+    const filteredExecutives = formData.branch
+      ? response.data.data.filter((user) => {
+          console.log('Checking user:', user.name, {
+            branchMatch: user.branch === formData.branch,
+            hasRole: user.roles.some(role => role.name === 'SALES_EXECUTIVE'),
+            isActive: user.isActive,
+            isFrozen: user.isFrozen,
+            status: user.status
+          });
+          
+          return (
+            user.branch === formData.branch &&
+            user.roles.some(role => role.name === 'SALES_EXECUTIVE') &&
+            user.status === 'ACTIVE' &&
+            !user.isFrozen
+          );
+        })
+      : [];
+    
+    console.log('Filtered executives:', filteredExecutives);
+    setSalesExecutives(filteredExecutives);
+    
+    if (formData.branch && filteredExecutives.length === 0) {
+      setErrors((prev) => ({
+        ...prev,
+        sales_executive: 'No active sales executives available for this branch'
+      }));
+    }
+  } catch (error) {
+    console.error('Error fetching sales executive:', error);
+    showFormSubmitError(error.message);
+  }
+};
     fetchSalesExecutive();
   }, [formData.branch]);
+
+
 
   const fetchModelHeaders = async (modelId) => {
     try {
