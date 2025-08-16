@@ -250,7 +250,7 @@ function InwardStock() {
       };
 
       if (id) {
-        await axiosInstance.patch(`/vehicles/${id}`, payload);
+        await axiosInstance.put(`/vehicles/${id}`, payload);
         await showFormSubmitToast('Vehicle updated successfully!', () => navigate('/inward-list'));
       } else {
         await axiosInstance.post('/vehicles', payload);

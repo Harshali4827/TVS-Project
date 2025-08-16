@@ -147,47 +147,76 @@ const BookingList = () => {
     handleClose();
   };
 
-  // const handleSaveChassisNumber = async (chassisNumber) => {
+  // const handleSaveChassisNumber = async (chassisNumber, reason) => {
   //   try {
   //     setChassisLoading(true);
-  //     await axiosInstance.put(`/bookings/${selectedBookingForChassis}/allocate`, {
-  //       chassisNumber: chassisNumber.trim()
-  //     });
-  //     showSuccess('Chassis number allocated successfully!');
+  //     const url = isUpdateChassis 
+  //       ? `/bookings/${selectedBookingForChassis}/allocate`
+  //       : `/bookings/${selectedBookingForChassis}/allocate`;
+      
+  //     const payload = isUpdateChassis
+  //       ? { chassisNumber: chassisNumber.trim(), reason }
+  //       : { chassisNumber: chassisNumber.trim() };
+
+  //     await axiosInstance.put(url, payload);
+      
+  //     showSuccess(`Chassis number ${isUpdateChassis ? 'updated' : 'allocated'} successfully!`);
   //     fetchData();
   //     setShowChassisModal(false);
+  //     setIsUpdateChassis(false);
   //   } catch (error) {
-  //     console.error('Error allocating chassis number:', error);
-  //     showError(error.response?.data?.message || 'Failed to allocate chassis number');
+  //     console.error(`Error ${isUpdateChassis ? 'updating' : 'allocating'} chassis number:`, error);
+  //     showError(error.response?.data?.message || `Failed to ${isUpdateChassis ? 'update' : 'allocate'} chassis number`);
   //   } finally {
   //     setChassisLoading(false);
   //   }
   // };
-  const handleSaveChassisNumber = async (chassisNumber, reason) => {
-    try {
-      setChassisLoading(true);
-      const url = isUpdateChassis 
-        ? `/bookings/${selectedBookingForChassis}/allocate`
-        : `/bookings/${selectedBookingForChassis}/allocate`;
-      
-      const payload = isUpdateChassis
-        ? { chassisNumber: chassisNumber.trim(), reason }
-        : { chassisNumber: chassisNumber.trim() };
 
-      await axiosInstance.put(url, payload);
-      
-      showSuccess(`Chassis number ${isUpdateChassis ? 'updated' : 'allocated'} successfully!`);
-      fetchData();
-      setShowChassisModal(false);
-      setIsUpdateChassis(false);
-    } catch (error) {
-      console.error(`Error ${isUpdateChassis ? 'updating' : 'allocating'} chassis number:`, error);
-      showError(error.response?.data?.message || `Failed to ${isUpdateChassis ? 'update' : 'allocate'} chassis number`);
-    } finally {
-      setChassisLoading(false);
+
+
+  const handleSaveChassisNumber = async (payload) => {
+  try {
+    setChassisLoading(true);
+    const url = isUpdateChassis 
+      ? `/bookings/${selectedBookingForChassis}/allocate`
+      : `/bookings/${selectedBookingForChassis}/allocate`;
+    
+    const formData = new FormData();
+    formData.append('chassisNumber', payload.chassisNumber);
+    
+    if (isUpdateChassis) {
+      formData.append('reason', payload.reason);
     }
-  };
+    
+    if (payload.claimDetails) {
+      formData.append('hasClaim', 'true');
+      formData.append('priceClaim', payload.claimDetails.price);
+      formData.append('description', payload.claimDetails.description);
+      
+      payload.claimDetails.documents.forEach((file, index) => {
+        formData.append(`documents`, file);
+      });
+    } else {
+      formData.append('hasClaim', 'false');
+    }
 
+    await axiosInstance.put(url, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
+    
+    showSuccess(`Chassis number ${isUpdateChassis ? 'updated' : 'allocated'} successfully!`);
+    fetchData();
+    setShowChassisModal(false);
+    setIsUpdateChassis(false);
+  } catch (error) {
+    console.error(`Error ${isUpdateChassis ? 'updating' : 'allocating'} chassis number:`, error);
+    showError(error.response?.data?.message || `Failed to ${isUpdateChassis ? 'update' : 'allocate'} chassis number`);
+  } finally {
+    setChassisLoading(false);
+  }
+};
   return (
     <div className="table-container">
       <div className="table-header">
@@ -332,9 +361,19 @@ const BookingList = () => {
                         {booking.documentStatus?.kyc?.status !== 'NOT_UPLOADED' && (
                           <MenuItem onClick={() => handleViewKYC(booking.id)}>View KYC</MenuItem>
                         )}
-                        {booking.status === 'APPROVED' && (
+
+                        {/* {booking.status === 'APPROVED' && (
                           <MenuItem onClick={() => handleAllocateChassis(booking.id)}>Allocate Chassis</MenuItem>
-                        )}
+                        )} */}
+
+                        {booking.status === 'APPROVED' && (
+  (booking.payment?.type === 'CASH' || 
+   (booking.payment?.type === 'FINANCE' && 
+    booking.documentStatus?.financeLetter?.status == 'APPROVED')) && (
+    <MenuItem onClick={() => handleAllocateChassis(booking.id)}>Allocate Chassis</MenuItem>
+  )
+)}
+
                          {booking.status === 'ALLOCATED' && (
     <MenuItem onClick={() => handleUpdateChassis(booking.id)}>Update Chassis</MenuItem>
   )}

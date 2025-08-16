@@ -240,7 +240,7 @@ const BrokerList = () => {
                 <th>Commission Type</th>
                 <th>Fixed Commission</th>
                 <th>Price Range</th>
-                <th>Status</th>
+                <th>OTP Required?</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -254,7 +254,7 @@ const BrokerList = () => {
               ) : (
                 currentRecords.flatMap((broker, index) => {
                   console.log(`Broker ID: ${broker.id}, isActive: ${broker.isActive}`);
-                  const isBrokerActive = broker.branches.some((branch) => branch.isActive);
+                  const otp_required = broker.branches.some((branch) => branch.otp_required);
                   return broker.branches.map((branch, branchIndex) => (
                     <tr key={`${broker.id}-${branchIndex}`}>
                       {branchIndex === 0 ? (
@@ -274,7 +274,7 @@ const BrokerList = () => {
                       {branchIndex === 0 ? (
                         <>
                           <td rowSpan={broker.branches.length}>
-                            {isBrokerActive ? (
+                            {otp_required ? (
                               <FaCheckCircle className="status-icon active-icon" />
                             ) : (
                               <FaTimesCircle className="status-icon inactive-icon" />
@@ -285,9 +285,9 @@ const BrokerList = () => {
                               Action
                             </button>
                             <Menu id={`action-menu-${broker.id}`} anchorEl={anchorEl} open={menuId === broker.id} onClose={handleClose}>
-                              {/* <Link className="Link" to={`/broker/update-broker/${broker.id}`}>
+                              <Link className="Link" to={`/broker/update-broker/${broker.id}`}>
                                 <MenuItem>Edit</MenuItem>
-                              </Link> */}
+                              </Link>
                               <MenuItem onClick={() => handleDelete(broker.id)}>Delete</MenuItem>
                             </Menu>
                           </td>

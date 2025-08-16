@@ -64,7 +64,7 @@ function ContraVoucher() {
     if (!formData.amount) formErrors.amount = 'This field is required';
     if (!formData.voucherType) formErrors.voucherType = 'This field is required';
     if (!formData.branch) formErrors.branch = 'This field is required';
-    if (formData.contraType === 'cash at bank' && !formData.bankLocation) {
+    if (formData.contraType === 'cash_at_bank' && !formData.bankLocation) {
       formErrors.bankLocation = 'This field is required';
     }
     if (Object.keys(formErrors).length > 0) {
@@ -157,8 +157,8 @@ function ContraVoucher() {
                   </CInputGroupText>
                   <CFormSelect type="text" name="contraType" value={formData.contraType} onChange={handleChange}>
                     <option value="">-Select</option>
-                    <option value="cash at bank">Cash At Bank</option>
-                    <option value="cash at home">Cash At Home</option>
+                    <option value="cash_at_bank">Cash At Bank</option>
+                    <option value="cash_at_home">Cash At Home</option>
                   </CFormSelect>
                 </CInputGroup>
                 {errors.contraType && <p className="error">{errors.contraType}</p>}
@@ -205,7 +205,7 @@ function ContraVoucher() {
                 </CInputGroup>
                 {errors.bankLocation && <p className="error">{errors.bankLocation}</p>}
               </div> */}
-                 {formData.contraType === 'cash at bank' && (
+                 {formData.contraType === 'cash_at_bank' && (
                 <div className="input-box">
                   <div className="details-container">
                     <span className="details">Bank Location</span>

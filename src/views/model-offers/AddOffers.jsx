@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../../css/form.css';
 import { CInputGroup, CInputGroupText, CFormInput, CFormSwitch, CFormCheck, CFormSelect } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
-import { cilBike, cilDescription, cilImage, cilLink, cilText } from '@coreui/icons';
+import { cilDescription, cilImage, cilLink, cilText } from '@coreui/icons';
 import { useNavigate, useParams } from 'react-router-dom';
 import { showFormSubmitError, showFormSubmitToast } from 'utils/sweetAlerts';
 import FormButtons from 'utils/FormButtons';
@@ -22,6 +22,7 @@ function AddOffer() {
   });
   const [errors, setErrors] = useState({});
   const [models, setModels] = useState([]);
+  const [existingImage, setExistingImage] = useState(''); 
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -31,14 +32,27 @@ function AddOffer() {
     }
   }, [id]);
 
-  const fetchOffer = async (id) => {
-    try {
-      const res = await axiosInstance.get(`/offers/${id}`);
-      setFormData(res.data.data.offer);
-    } catch (error) {
-      console.error('Error fetching offers', error);
+const fetchOffer = async (id) => {
+  try {
+    const res = await axiosInstance.get(`/offers/${id}`);
+    setFormData({
+      ...res.data.data.offer,
+      image: null
+    });
+    setExistingImage(res.data.data.offer.image);
+  } catch (error) {
+    console.error('Error fetching offers', error);
+  }
+};
+
+useEffect(() => {
+  return () => {
+    if (formData.image) {
+      URL.revokeObjectURL(URL.createObjectURL(formData.image));
     }
   };
+}, [formData.image]);
+
   useEffect(() => {
     const fetchModels = async () => {
       try {
@@ -179,7 +193,7 @@ function AddOffer() {
                   <CFormInput type="url" name="url" value={formData.url} onChange={handleChange} />
                 </CInputGroup>
               </div>
-              <div className="input-box">
+              {/* <div className="input-box">
                 <span className="details">Image</span>
                 <CInputGroup>
                   <CInputGroupText className="input-icon">
@@ -187,7 +201,40 @@ function AddOffer() {
                   </CInputGroupText>
                   <CFormInput type="file" name="image" onChange={handleChange} accept="image/*" />
                 </CInputGroup>
-              </div>
+              </div> */}
+             <div className="input-box">
+  <span className="details">Image</span>
+  <CInputGroup>
+    <CInputGroupText className="input-icon">
+      <CIcon icon={cilImage} />
+    </CInputGroupText>
+    <CFormInput type="file" name="image" onChange={handleChange} accept="image/*" />
+  </CInputGroup>
+  
+  {/* Show existing image if in edit mode and no new image selected */}
+  {id && existingImage && !formData.image && (
+    <div className="existing-image-preview">
+      <p>Current Image:</p>
+      <img 
+        src={`${axiosInstance.defaults.baseURL}${existingImage}`}
+        alt="Current offer" 
+        style={{ maxWidth: '200px', maxHeight: '200px' }} 
+      />
+    </div>
+  )}
+  
+  {/* Show preview of new image if selected */}
+  {formData.image && (
+    <div className="new-image-preview">
+      <p>New Image:</p>
+      <img 
+        src={URL.createObjectURL(formData.image)} 
+        alt="New offer" 
+        style={{ maxWidth: '200px', maxHeight: '200px' }} 
+      />
+    </div>
+  )}
+</div>
               <div className="input-box">
                 <div className="details-container">
                   <span className="details">Offer Language </span>
