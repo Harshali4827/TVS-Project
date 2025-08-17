@@ -18,14 +18,14 @@ const menuItems = {
 
     /*********************************/
     {
-      id: 'purchase',
-      title: 'Purchase',
+      id: 'components',
+      title: 'Components',
       type: 'group',
       icon: 'icon-navigation',
       children: [
         {
-          id: 'vehicle-inward',
-          title: 'Vehicle Inward',
+          id: 'purchase',
+          title: 'Purchase',
           type: 'collapse',
           icon: 'fas fa-warehouse',
           children: [
@@ -40,46 +40,20 @@ const menuItems = {
               title: 'Stock Verification',
               type: 'item',
               url: '/stock-verification'
-            }
-          ]
-        },
-        {
+            },
+             {
           id: 'stock-transfer',
           title: 'Stock Transfer',
           type: 'item',
-          icon: 'feather icon-home',
           url: '/stock-transfer'
         },
         {
           id: 'upload-challan',
           title: 'Upload Challan',
           type: 'item',
-          icon: 'feather icon-home',
           url: '/upload-challan'
         }
-      ]
-    },
 
-    /****************************************************************************/
-
-    {
-      id: 'sales and customer management',
-      title: 'Sales & Customer Management',
-      type: 'group',
-      icon: 'icon-navigation',
-      children: [
-        {
-          id: 'customers',
-          title: 'Quotation',
-          type: 'collapse',
-          icon: 'feather icon-users',
-          children: [
-            {
-              id: 'customers list',
-              title: 'Customer Quotation',
-              type: 'item',
-              url: '/customers/customers-list'
-            }
           ]
         },
         {
@@ -138,7 +112,7 @@ const menuItems = {
             }
           ]
         },
-        {
+          {
           id: 'sales report',
           title: 'Sales Report',
           type: 'collapse',
@@ -151,18 +125,22 @@ const menuItems = {
               url: '/sales-report'
             }
           ]
-        }
-      ]
-    },
-    /****************************************************************************/
-
-    {
-      id: 'account',
-      title: 'Account',
-      type: 'group',
-      icon: 'icon-navigation',
-      children: [
-        {
+        },
+          {
+          id: 'customers',
+          title: 'Quotation',
+          type: 'collapse',
+          icon: 'feather icon-users',
+          children: [
+            {
+              id: 'customers list',
+              title: 'Customer Quotation',
+              type: 'item',
+              url: '/customers/customers-list'
+            }
+          ]
+        },
+         {
           id: 'account',
           title: 'Account',
           type: 'collapse',
@@ -212,17 +190,8 @@ const menuItems = {
               url: '/exchange-ledgers'
             }
           ]
-        }
-      ]
-    },
-    /*********************************/
-    {
-      id: 'insurance',
-      title: 'Insurance',
-      type: 'group',
-      icon: 'icon-navigation',
-      children: [
-        {
+        },
+         {
           id: 'insurance',
           title: 'Insurance',
           type: 'collapse',
@@ -254,17 +223,8 @@ const menuItems = {
               url: '/insurance-report'
             }
           ]
-        }
-      ]
-    },
-    /*********************************/
-    {
-      id: 'rto',
-      title: 'RTO',
-      type: 'group',
-      icon: 'icon-navigation',
-      children: [
-        {
+        },
+         {
           id: 'rto',
           title: 'RTO',
           type: 'collapse',
@@ -320,18 +280,8 @@ const menuItems = {
               url: '/rto/report'
             }
           ]
-        }
-      ]
-    },
-
-    /************************************************************/
-    {
-      id: 'fund-management',
-      title: 'Fund Management',
-      type: 'group',
-      icon: 'icon-navigation',
-      children: [
-        {
+        },
+         {
           id: 'fund-management',
           title: 'Fund Management',
           type: 'collapse',
@@ -355,12 +305,6 @@ const menuItems = {
               type: 'item',
               url: '/contra-approval'
             },
-            // {
-            //   id: ' cash approval',
-            //   title: 'Cash Approval',
-            //   type: 'item',
-            //   url: '/cash-approval'
-            // },
             {
               id: 'receipts',
               title: 'Workshop Cash Receipt',
@@ -398,19 +342,8 @@ const menuItems = {
               url: '/fund-report'
             }
           ]
-        }
-      ]
-    },
-
-    /************************************************************/
-
-    {
-      id: 'master',
-      title: 'Masters',
-      type: 'group',
-      icon: 'icon-navigation',
-      children: [
-        {
+        },
+         {
           id: 'master',
           title: 'Masters',
           type: 'collapse',
@@ -513,18 +446,8 @@ const menuItems = {
               url: '/broker/broker-list'
             }
           ]
-        }
-      ]
-    },
-
-    /****************************************************************************/
-    {
-      id: 'fund master',
-      title: 'Fund Master',
-      type: 'group',
-      icon: 'icon-navigation',
-      children: [
-        {
+        },
+         {
           id: 'fund master',
           title: 'Fund Master',
           type: 'collapse',
@@ -557,6 +480,32 @@ const menuItems = {
             }
           ]
         }
+
+      ]
+    },
+
+    /****************************************************************************/
+    {
+      id: 'sub dealer',
+      title: 'SUB DEALER',
+      type: 'group',
+      icon: 'icon-navigation',
+      children: [
+        {
+          id: 'sub-master',
+          title: 'Master',
+          type: 'collapse',
+          icon: 'feather icon-shield',
+          children: [
+            {
+              id: 'subdealer list',
+              title: 'Subdealer List',
+              type: 'item',
+              url: '/subdealer-list'
+            },
+          ]
+        },
+       
       ]
     },
     /*********************************************************** */
@@ -626,26 +575,6 @@ const menuItems = {
             }
           ]
         },
-        // {
-        //   id: 'employee',
-        //   title: 'Employee',
-        //   type: 'collapse',
-        //   icon: 'feather icon-user',
-        //   children: [
-        //     {
-        //       id: 'add employee',
-        //       title: 'Add Employee',
-        //       type: 'item',
-        //       url: '/employee/add-employee'
-        //     },
-        //     {
-        //       id: 'employee-list',
-        //       title: 'Employee List',
-        //       type: 'item',
-        //       url: '/employee/employee-list'
-        //     }
-        //   ]
-        // },
         {
           id: 'buffer',
           title: 'Buffer',

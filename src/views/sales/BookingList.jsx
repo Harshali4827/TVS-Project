@@ -147,33 +147,6 @@ const BookingList = () => {
     handleClose();
   };
 
-  // const handleSaveChassisNumber = async (chassisNumber, reason) => {
-  //   try {
-  //     setChassisLoading(true);
-  //     const url = isUpdateChassis 
-  //       ? `/bookings/${selectedBookingForChassis}/allocate`
-  //       : `/bookings/${selectedBookingForChassis}/allocate`;
-      
-  //     const payload = isUpdateChassis
-  //       ? { chassisNumber: chassisNumber.trim(), reason }
-  //       : { chassisNumber: chassisNumber.trim() };
-
-  //     await axiosInstance.put(url, payload);
-      
-  //     showSuccess(`Chassis number ${isUpdateChassis ? 'updated' : 'allocated'} successfully!`);
-  //     fetchData();
-  //     setShowChassisModal(false);
-  //     setIsUpdateChassis(false);
-  //   } catch (error) {
-  //     console.error(`Error ${isUpdateChassis ? 'updating' : 'allocating'} chassis number:`, error);
-  //     showError(error.response?.data?.message || `Failed to ${isUpdateChassis ? 'update' : 'allocate'} chassis number`);
-  //   } finally {
-  //     setChassisLoading(false);
-  //   }
-  // };
-
-
-
   const handleSaveChassisNumber = async (payload) => {
   try {
     setChassisLoading(true);
@@ -362,10 +335,6 @@ const BookingList = () => {
                           <MenuItem onClick={() => handleViewKYC(booking.id)}>View KYC</MenuItem>
                         )}
 
-                        {/* {booking.status === 'APPROVED' && (
-                          <MenuItem onClick={() => handleAllocateChassis(booking.id)}>Allocate Chassis</MenuItem>
-                        )} */}
-
                         {booking.status === 'APPROVED' && (
   (booking.payment?.type === 'CASH' || 
    (booking.payment?.type === 'FINANCE' && 
@@ -408,13 +377,6 @@ const BookingList = () => {
         refreshData={fetchData}
         bookingId={financeBookingId}
       />
-      {/* <ChassisNumberModal
-        show={showChassisModal}
-        onClose={() => setShowChassisModal(false)}
-        onSave={handleSaveChassisNumber}
-        isLoading={chassisLoading}
-        booking={data.find((b) => b._id === selectedBookingForChassis)}
-      /> */}
       <ChassisNumberModal
     show={showChassisModal}
     onClose={() => {

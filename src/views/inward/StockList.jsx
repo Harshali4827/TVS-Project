@@ -80,43 +80,13 @@ const InventoryList = () => {
     }
   };
 
-  const handleStatusUpdate = async (id, newStatus) => {
-    try {
-      await axiosInstance.put(`/vehicles/${id}/status`, {
-        status: newStatus
-      });
-      fetchData();
-    } catch (error) {
-      console.log('Error updating status:', error);
-      showError(error);
-    } finally {
-      handleClose();
-    }
-  };
-
-  // Import CSV function
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-
-    reader.onload = (event) => {
-      const data = new Uint8Array(event.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-
-      // Process the imported data here
-      console.log(jsonData);
-      // You might want to send this data to your API or merge with existing data
-    };
-
-    reader.readAsArrayBuffer(file);
-  };
   const handleImportSuccess = () => {
     fetchData(selectedBranchId);
   };
 
   return (
+    <div>
+      <h4>Inwarded Stock</h4>
     <div className="table-container">
       <div className="table-header">
         <div className="search-icon-data">
@@ -272,6 +242,7 @@ const InventoryList = () => {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 };

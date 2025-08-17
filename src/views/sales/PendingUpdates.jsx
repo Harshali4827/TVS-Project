@@ -102,6 +102,8 @@ const PendingUpdates = () => {
   };
 
   return (
+    <div>
+      <h4>Pending Booking Updates</h4>
     <div className="table-container">
       <div className="table-header">
         <div className="search-icon-data">
@@ -174,6 +176,7 @@ const PendingUpdates = () => {
         onApprove={(payload) => handleApproveUpdate(selectedUpdate._id, payload)}
         onReject={(payload) => handleRejectUpdate(selectedUpdate._id, payload)}
       />
+    </div>
     </div>
   );
 };

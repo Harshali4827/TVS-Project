@@ -585,32 +585,6 @@ const handleVerifyOtp = async () => {
     }
   };
 
-  // useEffect(() => {
-  //   const fetchBrokers = async () => {
-  //     try {
-  //       if (!formData.branch) {
-  //         setBrokers([]);
-  //         return;
-  //       }
-
-  //       const response = await axiosInstance.get(`/brokers/branch/${formData.branch}`);
-  //       setBrokers(response.data.data || []);
-
-  //       if (response.data.data.length === 0) {
-  //         setErrors((prev) => ({
-  //           ...prev,
-  //           broker_id: 'No brokers available for this branch'
-  //         }));
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching brokers:', error);
-  //       showFormSubmitError(error.message);
-  //       setBrokers([]);
-  //     }
-  //   };
-
-  //   fetchBrokers();
-  // }, [formData.branch]);
 
   useEffect(() => {
     const fetchBrokers = async () => {
@@ -802,15 +776,6 @@ const handleVerifyOtp = async () => {
     console.log('Request payload:', JSON.stringify(requestBody, null, 2));
 
     try {
-      // const response = await axiosInstance.post('/bookings', requestBody);
-      // console.log('API response:', response);
-      // if (response.data.success) {
-      //   await showFormSubmitToast('Booking created successfully!', () => navigate('/booking-list'));
-      //   navigate('/booking-list');
-      // } else {
-      //   console.error('Submission failed:', response.data);
-      //   showFormSubmitError(response.data.message || 'Submission failed');
-      // }
       let response;
       if (isEditMode) {
         response = await axiosInstance.put(`/bookings/${id}`, requestBody);
@@ -1021,18 +986,6 @@ const handleVerifyOtp = async () => {
             {activeTab === 2 && (
               <>
                 <div className="user-details">
-                  {/* <div className="input-box">
-                    <div className="details-container">
-                      <span className="details">Vehicle Model</span>
-                      <span className="required">*</span>
-                    </div>
-                    <CInputGroup>
-                      <CInputGroupText className="input-icon">
-                        <CIcon icon={cilBike} />
-                      </CInputGroupText>
-                      <CFormInput type="text" name="model_id" value={formData.model_name || ''} onChange={handleChange} />
-                    </CInputGroup>
-                  </div> */}
 
                   <div className="input-box">
                     <div className="details-container">

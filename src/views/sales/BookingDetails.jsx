@@ -261,7 +261,7 @@ const ViewBooking = ({ open, onClose, booking, refreshData }) => {
                         </div>
                         <div className="meta-item">
                           <FaBuilding className="meta-icon" />
-                          <span>{booking.branch.name}</span>
+                          <span>{booking?.branch?.name || ""}</span>
                         </div>
                         <div className="meta-item">
                           <span className="status-display">Status: {renderStatusBadge()}</span>

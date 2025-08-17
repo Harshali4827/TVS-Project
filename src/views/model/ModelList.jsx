@@ -57,7 +57,6 @@ const ModelList = () => {
       const response = await axiosInstance.get(url, { params });
       let models = response.data.data?.models || response.data.data || [];
 
-      // Ensure consistent _id field
       models = models.map((model) => ({
         ...model,
         _id: model._id || model.id,
@@ -118,11 +117,8 @@ const ModelList = () => {
   const getPriceForHeader = (model, headerId) => {
     if (!model.prices || !Array.isArray(model.prices)) return '-';
 
-    // Find the header object to get the header_key
     const header = headers.find((h) => h._id === headerId);
     if (!header) return '-';
-
-    // Find the price for this header_key
     const priceObj = model.prices.find((price) => price.header_key === header.header_key || price.header_id === headerId);
 
     return priceObj ? priceObj.value : '-';

@@ -684,6 +684,21 @@ export const routes = [
         path: '/expense',
         element: lazy(() => import('./views/fund-master/AddExpense'))
       },
+        {
+        exact:'true',
+        path:'/add-subdealer',
+        element: lazy(() => import('./views/subdealer/AddSubdealer'))
+      },
+        {
+        exact:'true',
+        path:'/update-subdealer/:id',
+        element: lazy(() => import('./views/subdealer/AddSubdealer'))
+      },
+      {
+        exact:'true',
+        path:'/subdealer-list',
+        element: lazy(() => import('./views/subdealer/SubdealerList'))
+      },
       {
         path: '*',
         exact: 'true',

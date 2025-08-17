@@ -7,18 +7,22 @@ import {
   getDefaultSearchFields,
   useTableFilter,
   usePagination,
-  axiosInstance
+  axiosInstance,
+  Menu,
+  MenuItem
 } from 'utils/tableImports';
 import tvsLogo from '../../assets/images/logo.png';
 import config from 'config';
 import ExchangeLedgerModel from './ExchangeLedgerModel';
 
 const ExchangeLedger = () => {
+  const [anchorEl, setAnchorEl] = useState(null);
+    const [menuId, setMenuId] = useState(null);
   const { data, setData, filteredData, setFilteredData, handleFilter } = useTableFilter([]);
   const { currentRecords, PaginationOptions } = usePagination(filteredData);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [selectedledger, setSelectedledger] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -26,22 +30,43 @@ const ExchangeLedger = () => {
 
   const fetchData = async () => {
     try {
-      const response = await axiosInstance.get(`/bookings`);
-      setData(response.data.data.bookings);
-      setFilteredData(response.data.data.bookings);
+      const response = await axiosInstance.get(`/broker-ledger/summary`);
+      setData(response.data.data.docs);
+      setFilteredData(response.data.data.docs);
     } catch (error) {
       console.log('Error fetching data', error);
     }
   };
-  const handleAddClick = (booking) => {
-    setSelectedBooking(booking);
-    setShowModal(true);
+
+  const handleClick = (event, id) => {
+    setAnchorEl(event.currentTarget);
+    setMenuId(id);
   };
-  const handleViewLedger = async (booking) => {
+
+  const handleClose = () => {
+    setAnchorEl(null);
+    setMenuId(null);
+  };
+ const handleAddClick = (ledger) => {
+  setSelectedledger(ledger);
+  setShowModal(true);
+};
+  const handleViewLedger = async (ledger) => {
     try {
-      const res = await axiosInstance.get(`/ledger/report/${booking._id}`);
+      const res = await axiosInstance.get(`/broker-ledger/${ledger.broker?._id}/statement`);
       const ledgerData = res.data.data;
-      const ledgerUrl = `${config.baseURL}/ledger.html?bookingId=${booking._id}`;
+      const ledgerUrl = `${config.baseURL}/ledger.html?ledgerId=${ledger._id}`;
+       let totalCredit = 0;
+    let totalDebit = 0;
+
+    ledgerData.transactions?.forEach((entry) => {
+      if (entry.type === 'CREDIT') {
+        totalCredit += entry.amount;
+      } else if (entry.type === 'DEBIT') {
+        totalDebit += entry.amount;
+      }
+    });
+    const finalBalance = totalDebit - totalCredit;
 
       const win = window.open('', '_blank');
       win.document.write(`
@@ -180,14 +205,8 @@ const ExchangeLedger = () => {
                 </div>
                 <div class="divider"></div>
                 <div class="customer-info">
-                  <div><strong>Customer Name:</strong> ${ledgerData.customerDetails?.name || ''}</div>
+                  <div><strong>Broker Name:</strong> ${ledgerData.broker?.name || ''}</div>
                   <div><strong>Ledger Date:</strong> ${ledgerData.ledgerDate || new Date().toLocaleDateString('en-GB')}</div>
-                  <div><strong>Customer Address:</strong> ${ledgerData.customerDetails?.address || ''}</div>
-                  <div><strong>Customer Phone:</strong> ${ledgerData.customerDetails?.phone || ''}</div>
-                  <div><strong>Chassis No:</strong> ${ledgerData.vehicleDetails?.chassisNo || ''}</div>
-                  <div><strong>Engine No:</strong> ${ledgerData.vehicleDetails?.engineNo || ''}</div>
-                  <div><strong>Finance Name:</strong> ${ledgerData.financeDetails?.financer || '---Select Financer Name---'}</div>
-                  <div><strong>Sale Executive:</strong> ${ledgerData.salesExecutive || ''}</div>
                 </div>
                 
                 <table>
@@ -202,25 +221,32 @@ const ExchangeLedger = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    ${ledgerData.entries
+                    ${ledgerData.transactions
                       ?.map(
                         (entry) => `
                       <tr>
-                        <td>${entry.date}</td>
-                        <td>${entry.description || ''}</td>
+                        <td>${new Date(entry.date).toLocaleDateString()}</td>
+                        <td>
+                          Booking No: ${entry.booking?.bookingNumber || '-'}<br>
+                           Customer: ${entry.booking?.customerName || '-'}<br>
+                           Chassis Number:${entry.booking?.chassisNumber || '-'}
+                           ${entry.mode}
+                        </td>
                         <td>${entry.receiptNo || ''}</td>
-                        <td class="text-right">${entry.credit ? entry.credit.toLocaleString('en-IN') : '-'}</td>
-                        <td class="text-right">${entry.debit ? entry.debit.toLocaleString('en-IN') : '-'}</td>
-                        <td class="text-right">${entry.balance ? entry.balance.toLocaleString('en-IN') : '-'}</td>
+                       <td class="text-right">${entry.type === 'CREDIT' ? entry.amount.toLocaleString('en-IN') : '-'}</td>
+                       <td class="text-right">${entry.type === 'DEBIT' ? entry.amount.toLocaleString('en-IN') : '-'}</td>
+                       <td class="text-right">
+                     
+                       </td>
                       </tr>
                     `
                       )
                       .join('')}
                     <tr>
                       <td colspan="3" class="text-left"><strong>Total</strong></td>
-                      <td class="text-right"><strong>${ledgerData.totals?.totalCredit?.toLocaleString('en-IN') || '0'}</strong></td>
-                      <td class="text-right"><strong>${ledgerData.totals?.totalDebit?.toLocaleString('en-IN') || '0'}</strong></td>
-                      <td class="text-right"><strong>${ledgerData.totals?.finalBalance?.toLocaleString('en-IN') || '0'}</strong></td>
+                      <td class="text-right"><strong>${totalCredit.toLocaleString('en-IN')}</strong></td>
+                      <td class="text-right"><strong>${totalDebit.toLocaleString('en-IN')}</strong></td>
+                      <td class="text-right"><strong>${finalBalance.toLocaleString('en-IN')}</strong></td>
                     </tr>
                   </tbody>
                 </table>
@@ -285,25 +311,38 @@ const ExchangeLedger = () => {
                     </td>
                   </tr>
                 ) : (
-                  currentRecords.map((booking, index) => (
+                  currentRecords.map((ledger, index) => (
                     <tr key={index}>
                       <td>{index + 1}</td>
-                      <td>{booking.bookingNumber}</td>
-                      <td>{booking.model?.model_name || ''}</td>
-                      <td>{booking.createdAt ? new Date(booking.createdAt).toLocaleDateString('en-GB') : ''}</td>
+                      <td>{ledger.broker.name}</td>
+                      <td>{ledger.totalCredit || ''}</td>
+                      <td>{ledger.totalDebit || ''}</td>
                       <td>
-                        <button className="action-button" onClick={() => handleAddClick(booking)}>
+                        <button className="action-button" onClick={() => handleAddClick(ledger)}>
                           Add
                         </button>
-                        <button style={{ marginLeft: '4px' }} className="action-button" onClick={() => handleViewLedger(booking)}>
+                        <button style={{ marginLeft: '4px' }} className="action-button" onClick={() => handleViewLedger(ledger)}>
                           View
                         </button>
+
+                         {/* <button className="action-button" onClick={(event) => handleClick(event, ledger.id)}>
+                            Action
+                          </button>
+                           <Menu id={`action-menu-${ledger.id}`} anchorEl={anchorEl} open={menuId === ledger.id} onClose={handleClose}>
+                            <MenuItem onClick={() => handleAddClick(ledger)}>Add</MenuItem>
+                            <MenuItem onClick={() => handleViewLedger(ledger)}>View</MenuItem>
+                            </Menu> */}
                       </td>
                     </tr>
                   ))
                 )}
               </tbody>
-              <ExchangeLedgerModel show={showModal} onClose={() => setShowModal(false)} bookingData={selectedBooking} />
+              <ExchangeLedgerModel 
+  show={showModal} 
+  onClose={() => setShowModal(false)} 
+  brokerData={selectedledger} 
+/>
+
             </table>
           </div>
         </div>
