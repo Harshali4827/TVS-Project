@@ -1,4 +1,5 @@
-import '../../css/table.css';
+
+import '../../../css/table.css';
 import {
   React,
   useState,
@@ -17,12 +18,13 @@ import {
 import CIcon from '@coreui/icons-react';
 import { cilCloudUpload, cilPrint } from '@coreui/icons';
 import config from 'config';
-import ViewBooking from './BookingDetails';
-import KYCView from './KYCView';
-import FinanceView from './FinanceView';
-import ChassisNumberModal from './ChassisModel';
+import KYCView from 'views/sales/KYCView';
+import FinanceView from 'views/sales/FinanceView';
+import ChassisNumberModal from 'views/sales/ChassisModel';
+import ViewBooking from 'views/sales/BookingDetails';
+import SubDealerChassisNumberModal from './SubdealerChassisModel';
 
-const BookingList = () => {
+const AllBooking = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [menuId, setMenuId] = useState(null);
   const { data, setData, filteredData, setFilteredData, handleFilter } = useTableFilter([]);
@@ -45,28 +47,19 @@ const BookingList = () => {
     fetchData();
   }, []);
 
-  // const fetchData = async () => {
-  //   try {
-  //     const response = await axiosInstance.get(`/bookings`);
-  //     setData(response.data.data.bookings);
-  //     setFilteredData(response.data.data.bookings);
-  //   } catch (error) {
-  //     console.log('Error fetching data', error);
-  //   }
-  // };
+  const fetchData = async () => {
+    try {
+      const response = await axiosInstance.get(`/bookings?bookingType=SUBDEALER`);
+      const subdealerBookings = response.data.data.bookings.filter(
+        booking => booking.bookingType === 'SUBDEALER'
+      );
+      setData(subdealerBookings);
+      setFilteredData(subdealerBookings);
+    } catch (error) {
+      console.log('Error fetching data', error);
+    }
+  };
 
-const fetchData = async () => {
-  try {
-    const response = await axiosInstance.get(`/bookings`);
-    const branchBookings = response.data.data.bookings.filter(
-      booking => booking.bookingType === "BRANCH"
-    );
-    setData(branchBookings);
-    setFilteredData(branchBookings);
-  } catch (error) {
-    console.log('Error fetching data', error);
-  }
-};
   const handleClick = (event, id) => {
     setAnchorEl(event.currentTarget);
     setMenuId(id);
@@ -158,10 +151,42 @@ const fetchData = async () => {
     handleClose();
   };
 
+//   const handleSaveChassisNumber = async (payload) => {
+//   try {
+//     setChassisLoading(true);
+//     const url = `/bookings/${selectedBookingForChassis}/allocate`;
+    
+//     const formData = new FormData();
+//     formData.append('chassisNumber', payload.chassisNumber);
+    
+//     if (isUpdateChassis) {
+//       formData.append('reason', payload.reason);
+//     }
+
+//     await axiosInstance.put(url, formData, {
+//       headers: {
+//         'Content-Type': 'multipart/form-data'
+//       }
+//     });
+    
+//     showSuccess(`Chassis number ${isUpdateChassis ? 'updated' : 'allocated'} successfully!`);
+//     fetchData();
+//     setShowChassisModal(false);
+//     setIsUpdateChassis(false);
+//   } catch (error) {
+//     console.error(`Error ${isUpdateChassis ? 'updating' : 'allocating'} chassis number:`, error);
+//     showError(error.response?.data?.message || `Failed to ${isUpdateChassis ? 'update' : 'allocate'} chassis number`);
+//   } finally {
+//     setChassisLoading(false);
+//   }
+// };
+
+
 const handleSaveChassisNumber = async (payload) => {
   try {
     setChassisLoading(true);
     
+    // Construct the URL with query parameter for updates
     let url = `/bookings/${selectedBookingForChassis}/allocate`;
     
     if (isUpdateChassis && payload.reason) {
@@ -170,18 +195,6 @@ const handleSaveChassisNumber = async (payload) => {
 
     const formData = new FormData();
     formData.append('chassisNumber', payload.chassisNumber);
-    
-    if (payload.claimDetails) {
-      formData.append('hasClaim', 'true');
-      formData.append('priceClaim', payload.claimDetails.price);
-      formData.append('description', payload.claimDetails.description);
-      
-      payload.claimDetails.documents.forEach((file, index) => {
-        formData.append(`documents`, file);
-      });
-    } else {
-      formData.append('hasClaim', 'false');
-    }
 
     await axiosInstance.put(url, formData, {
       headers: {
@@ -200,7 +213,6 @@ const handleSaveChassisNumber = async (payload) => {
     setChassisLoading(false);
   }
 };
-
   return (
     <div className="table-container">
       <div className="table-header">
@@ -236,8 +248,8 @@ const handleSaveChassisNumber = async (payload) => {
             <tbody>
               {currentRecords.length === 0 ? (
                 <tr>
-                  <td colSpan="4" style={{ color: 'red' }}>
-                    No booking available
+                  <td colSpan="14" style={{ color: 'red' }}>
+                    No subdealer bookings available
                   </td>
                 </tr>
               ) : (
@@ -336,7 +348,7 @@ const handleSaveChassisNumber = async (payload) => {
 
                       <Menu id={`action-menu-${booking.id}`} anchorEl={anchorEl} open={menuId === booking.id} onClose={handleClose}>
                         <MenuItem onClick={() => handleViewBooking(booking.id)}>View Booking</MenuItem>
-                        <Link className="Link" to={`/booking-form/${booking.id}`}>
+                        <Link className="Link" to={`/update-subdealer-booking/${booking.id}`}>
                           <MenuItem>Edit</MenuItem>
                         </Link>
                         {booking.payment.type === 'FINANCE' && booking.documentStatus?.financeLetter?.status !== 'NOT_UPLOADED' && (
@@ -347,23 +359,15 @@ const handleSaveChassisNumber = async (payload) => {
                         )}
 
                         {booking.status === 'APPROVED' && (
-  (booking.payment?.type === 'CASH' || 
-   (booking.payment?.type === 'FINANCE' && 
-    booking.documentStatus?.financeLetter?.status == 'APPROVED')) && (
-    <MenuItem onClick={() => handleAllocateChassis(booking.id)}>Allocate Chassis</MenuItem>
-  )
-)}
-{/* 
-                         {booking.status === 'ALLOCATED' && (
-    <MenuItem onClick={() => handleUpdateChassis(booking.id)}>Update Chassis</MenuItem>
-  )} */}
+                          (booking.payment?.type === 'CASH' || 
+                          (booking.payment?.type === 'FINANCE' && 
+                          booking.documentStatus?.financeLetter?.status == 'APPROVED')) && (
+                          <MenuItem onClick={() => handleAllocateChassis(booking.id)}>Allocate Chassis</MenuItem>
+                        ))}
 
-  {booking.status === "ALLOCATED" && booking.chassisNumberChangeAllowed && (
-  <MenuItem onClick={() => handleUpdateChassis(booking.id)}>
-    Update Chassis
-  </MenuItem>
-)}
-
+                        {booking.status === 'ALLOCATED' && (
+                          <MenuItem onClick={() => handleUpdateChassis(booking.id)}>Update Chassis</MenuItem>
+                        )}
                       </Menu>
                     </td>
                   </tr>
@@ -395,19 +399,19 @@ const handleSaveChassisNumber = async (payload) => {
         refreshData={fetchData}
         bookingId={financeBookingId}
       />
-      <ChassisNumberModal
-    show={showChassisModal}
-    onClose={() => {
-      setShowChassisModal(false);
-      setIsUpdateChassis(false);
-    }}
-    onSave={handleSaveChassisNumber}
-    isLoading={chassisLoading}
-    booking={data.find((b) => b._id === selectedBookingForChassis)}
-    isUpdate={isUpdateChassis}
-  />
+      <SubDealerChassisNumberModal
+        show={showChassisModal}
+        onClose={() => {
+          setShowChassisModal(false);
+          setIsUpdateChassis(false);
+        }}
+        onSave={handleSaveChassisNumber}
+        isLoading={chassisLoading}
+        booking={data.find((b) => b._id === selectedBookingForChassis)}
+        isUpdate={isUpdateChassis}
+      />
     </div>
   );
 };
 
-export default BookingList;
+export default AllBooking;

@@ -505,6 +505,50 @@ const menuItems = {
             },
           ]
         },
+        {
+          id: 'subdealer-booking',
+          title: 'Booking',
+          type: 'collapse',
+          icon: 'feather icon-shield',
+          children: [
+             {
+              id: 'new booking',
+              title: 'New Booking',
+              type: 'item',
+              url: '/subdealer-booking'
+            },
+            {
+              id: 'all subdealer booking',
+              title: ' All Booking',
+              type: 'item',
+              url: '/subdealer-all-bookings'
+            },
+             {
+              id: 'subdealer delivary challan',
+              title: 'Delivery Challan',
+              type: 'item',
+              url: '/delivery-challan'
+            },
+            {
+              id: 'subdealer invoice',
+              title: 'Invoice',
+              type: 'item',
+              url: '/invoice'
+            },
+            {
+              id: 'subdealer deal-form',
+              title: 'Deal Form',
+              type: 'item',
+              url: '/deal-form'
+            },
+            {
+              id: 'subdealer pending updates',
+              title: 'Pending Updates',
+              type: 'item',
+              url: '/pending-updates'
+            }
+          ]
+        },
        
       ]
     },

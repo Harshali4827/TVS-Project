@@ -557,11 +557,22 @@ const ViewBooking = ({ open, onClose, booking, refreshData }) => {
         <CModalFooter>
           <div className="d-flex justify-content-between w-100">
             <div>
-              {booking?.status !== 'APPROVED' && (
+              {/* {booking?.status !== 'APPROVED' && (
                 <button className="btn btn-success me-2" onClick={() => handleActionClick('approve')} disabled={actionLoading}>
                   {actionLoading ? 'Approving...' : 'Approve'}
                 </button>
-              )}
+              )} */}
+
+              {booking?.status !== 'APPROVED' && booking?.status !== 'ALLOCATED' && (
+  <button 
+    className="btn btn-success me-2" 
+    onClick={() => handleActionClick('approve')} 
+    disabled={actionLoading}
+  >
+    {actionLoading ? 'Approving...' : 'Approve'}
+  </button>
+)}
+
               {booking?.status !== 'REJECTED' && (
                 <button className="btn btn-danger me-2" onClick={() => handleActionClick('reject')} disabled={actionLoading}>
                   {actionLoading ? 'Rejecting...' : 'Reject'}

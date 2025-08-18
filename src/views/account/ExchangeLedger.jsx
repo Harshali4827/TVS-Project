@@ -315,8 +315,8 @@ const ExchangeLedger = () => {
                     <tr key={index}>
                       <td>{index + 1}</td>
                       <td>{ledger.broker.name}</td>
-                      <td>{ledger.totalCredit || ''}</td>
                       <td>{ledger.totalDebit || ''}</td>
+                      <td>{ledger.totalCredit || ''}</td>
                       <td>
                         <button className="action-button" onClick={() => handleAddClick(ledger)}>
                           Add
@@ -338,10 +338,11 @@ const ExchangeLedger = () => {
                 )}
               </tbody>
               <ExchangeLedgerModel 
-  show={showModal} 
-  onClose={() => setShowModal(false)} 
-  brokerData={selectedledger} 
-/>
+                 show={showModal} 
+                 onClose={() => setShowModal(false)} 
+                 brokerData={selectedledger} 
+                 refreshData={fetchData} 
+                />
 
             </table>
           </div>

@@ -268,7 +268,7 @@ function DealForm() {
           Authorized Main Dealer: TVS Motor Company Ltd.<br>
           Registered office: 'JOGPREET' Asher Estate, Near Ichhamani Lawns,<br>
           Upnagar, Nashik Road, Nashik, 7498993672<br>
-          GSTIN: ${data.branch.gst_number}<br>
+          GSTIN: ${data.branch?.gst_number || ''}<br>
           GANDHI TVS PIMPALGAON
         </div>
       </div>

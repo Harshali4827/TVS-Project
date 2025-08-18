@@ -700,6 +700,21 @@ export const routes = [
         element: lazy(() => import('./views/subdealer/SubdealerList'))
       },
       {
+        exact:'true',
+        path:'/subdealer-booking',
+        element: lazy(() => import('./views/subdealer/booking/NewBooking'))
+      },
+      {
+        exact:'true',
+        path:'/update-subdealer-booking/:id',
+        element: lazy(() => import('./views/subdealer/booking/NewBooking'))
+      },
+         {
+        exact:'true',
+        path:'/subdealer-all-bookings',
+        element: lazy(() => import('./views/subdealer/booking/AllBooking'))
+      },
+      {
         path: '*',
         exact: 'true',
         element: () => <Navigate to={BASE_URL} />

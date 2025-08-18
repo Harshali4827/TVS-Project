@@ -1,4 +1,3 @@
-
 // import React, { useState, useEffect } from 'react';
 // import '../../css/form.css';
 // import '../../css/permission.css';
@@ -83,7 +82,7 @@
 //         branch: userData.branchDetails?._id || '',
 //         roleId: userData.roles[0]?._id || '',
 //         discount: userData.discount || '',
-//         permissions: userData.permissions?.map(p => p._id) || []
+//          permissions: userData.permissions?.map(p => p.permission) || []
 //       };
 //       setFormData(normalizedData);
 //       if (normalizedData.roleId) {
@@ -141,20 +140,21 @@
 //   };
 
 //   const fetchRolePermissions = async (roleId) => {
-//     setIsLoadingPermissions(true);
-//     try {
-//       const res = await axiosInstance.get(`/roles/${roleId}`);
-//       const rolePermissions = res.data.data.permissions || [];
-//       setFormData(prev => ({
-//         ...prev,
-//         permissions: rolePermissions.map(p => p._id)
-//       }));
-//     } catch (error) {
-//       console.error('Error fetching role permissions:', error);
-//     } finally {
-//       setIsLoadingPermissions(false);
-//     }
-//   };
+//   setIsLoadingPermissions(true);
+//   try {
+//     const res = await axiosInstance.get(`/roles/${roleId}`);
+//     const rolePermissions = res.data.data.permissions || [];
+//     setFormData(prev => ({
+//       ...prev,
+//       // Only add role permissions if they're not already in the user's permissions
+//       permissions: [...new Set([...prev.permissions, ...rolePermissions.map(p => p._id)])]
+//     }));
+//   } catch (error) {
+//     console.error('Error fetching role permissions:', error);
+//   } finally {
+//     setIsLoadingPermissions(false);
+//   }
+// };
 
 //   const handleChange = async (e) => {
 //     const { name, value } = e.target;
@@ -170,6 +170,22 @@
 //       }
 //     }
 //   };
+//   const handleRoleChange = async (e) => {
+//   const { value } = e.target;
+//   setFormData(prev => ({ ...prev, roleId: value }));
+//   setErrors(prev => ({ ...prev, roleId: '' }));
+
+//   if (value) {
+//     setShowPermissions(true);
+//     // For new users, replace permissions with role permissions
+//     if (!id) {
+//       await fetchRolePermissions(value);
+//     }
+//     // For existing users, just show the current permissions
+//   } else {
+//     setFormData(prev => ({ ...prev, permissions: [] }));
+//   }
+// };
 
 //   const toggleAction = (module, action) => {
 //     setFormData((prev) => {
@@ -359,7 +375,7 @@
 //                   <CFormSelect 
 //                     name="roleId" 
 //                     value={formData.roleId} 
-//                     onChange={handleChange}
+//                     onChange={handleRoleChange}
 //                   >
 //                     <option value="">-Select-</option>
 //                     {roles.map((role) => (
@@ -498,7 +514,6 @@
 
 
 
-
 import React, { useState, useEffect } from 'react';
 import '../../css/form.css';
 import '../../css/permission.css';
@@ -529,7 +544,9 @@ function AddUser() {
     name: '',
     email: '',
     mobile: '',
+    type: '', // 'branch' or 'subdealer'
     branch: '',
+    subdealer: '',
     roleId: '',
     discount: '',
     permissions: []
@@ -537,6 +554,7 @@ function AddUser() {
 
   const [roles, setRoles] = useState([]);
   const [branches, setBranches] = useState([]);
+  const [subdealers, setSubdealers] = useState([]);
   const [permissionsData, setPermissionsData] = useState([]);
   const [groupedPermissions, setGroupedPermissions] = useState({});
   const [availableActions, setAvailableActions] = useState([]);
@@ -569,6 +587,7 @@ function AddUser() {
     }
     fetchRoles();
     fetchBranches();
+    fetchSubdealers();
     fetchAllPermissions();
   }, [id]);
 
@@ -580,10 +599,12 @@ function AddUser() {
         name: userData.name,
         email: userData.email,
         mobile: userData.mobile,
+        type: userData.branchDetails ? 'branch' : 'subdealer',
         branch: userData.branchDetails?._id || '',
+        subdealer: userData.subdealerDetails?._id || '',
         roleId: userData.roles[0]?._id || '',
         discount: userData.discount || '',
-         permissions: userData.permissions?.map(p => p.permission) || []
+        permissions: userData.permissions?.map(p => p.permission) || []
       };
       setFormData(normalizedData);
       if (normalizedData.roleId) {
@@ -610,6 +631,16 @@ function AddUser() {
       setBranches(response.data.data || []);
     } catch (error) {
       console.error('Error fetching branches:', error);
+      showError(error);
+    }
+  };
+
+  const fetchSubdealers = async () => {
+    try {
+      const response = await axiosInstance.get('/subdealers');
+      setSubdealers(response.data.data.subdealers || []);
+    } catch (error) {
+      console.error('Error fetching subdealers:', error);
       showError(error);
     }
   };
@@ -641,26 +672,33 @@ function AddUser() {
   };
 
   const fetchRolePermissions = async (roleId) => {
-  setIsLoadingPermissions(true);
-  try {
-    const res = await axiosInstance.get(`/roles/${roleId}`);
-    const rolePermissions = res.data.data.permissions || [];
-    setFormData(prev => ({
-      ...prev,
-      // Only add role permissions if they're not already in the user's permissions
-      permissions: [...new Set([...prev.permissions, ...rolePermissions.map(p => p._id)])]
-    }));
-  } catch (error) {
-    console.error('Error fetching role permissions:', error);
-  } finally {
-    setIsLoadingPermissions(false);
-  }
-};
+    setIsLoadingPermissions(true);
+    try {
+      const res = await axiosInstance.get(`/roles/${roleId}`);
+      const rolePermissions = res.data.data.permissions || [];
+      setFormData(prev => ({
+        ...prev,
+        permissions: [...new Set([...prev.permissions, ...rolePermissions.map(p => p._id)])]
+      }));
+    } catch (error) {
+      console.error('Error fetching role permissions:', error);
+    } finally {
+      setIsLoadingPermissions(false);
+    }
+  };
 
   const handleChange = async (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
     setErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
+
+    if (name === 'type') {
+      setFormData(prev => ({
+        ...prev,
+        branch: '',
+        subdealer: ''
+      }));
+    }
 
     if (name === 'roleId') {
       setShowPermissions(true);
@@ -671,22 +709,21 @@ function AddUser() {
       }
     }
   };
-  const handleRoleChange = async (e) => {
-  const { value } = e.target;
-  setFormData(prev => ({ ...prev, roleId: value }));
-  setErrors(prev => ({ ...prev, roleId: '' }));
 
-  if (value) {
-    setShowPermissions(true);
-    // For new users, replace permissions with role permissions
-    if (!id) {
-      await fetchRolePermissions(value);
+  const handleRoleChange = async (e) => {
+    const { value } = e.target;
+    setFormData(prev => ({ ...prev, roleId: value }));
+    setErrors(prev => ({ ...prev, roleId: '' }));
+
+    if (value) {
+      setShowPermissions(true);
+      if (!id) {
+        await fetchRolePermissions(value);
+      }
+    } else {
+      setFormData(prev => ({ ...prev, permissions: [] }));
     }
-    // For existing users, just show the current permissions
-  } else {
-    setFormData(prev => ({ ...prev, permissions: [] }));
-  }
-};
+  };
 
   const toggleAction = (module, action) => {
     setFormData((prev) => {
@@ -739,7 +776,16 @@ function AddUser() {
     if (!formData.name.trim()) newErrors.name = 'Name is required';
     if (!formData.email.trim()) newErrors.email = 'Email is required';
     if (!formData.mobile.trim()) newErrors.mobile = 'Mobile is required';
-    if (!formData.branch) newErrors.branch = 'Branch is required';
+    if (!formData.type) newErrors.type = 'Type is required';
+    
+    if (formData.type === 'branch' && !formData.branch) {
+      newErrors.branch = 'Branch is required';
+    }
+    
+    if (formData.type === 'subdealer' && !formData.subdealer) {
+      newErrors.subdealer = 'Subdealer is required';
+    }
+    
     if (!formData.roleId) newErrors.roleId = 'Role is required';
 
     const selectedRole = roles.find(role => role._id === formData.roleId);
@@ -766,7 +812,8 @@ function AddUser() {
       name: formData.name,
       email: formData.email,
       mobile: formData.mobile,
-      branch: formData.branch,
+      ...(formData.type === 'branch' && { branch: formData.branch }),
+      ...(formData.type === 'subdealer' && { subdealer: formData.subdealer }),
       roleId: formData.roleId,
       ...(formData.discount !== '' && { discount: Number(formData.discount) }),
       permissions: formData.permissions
@@ -841,28 +888,79 @@ function AddUser() {
               
               <div className="input-box">
                 <div className="details-container">
-                  <span className="details">Branch</span>
+                  <span className="details">Type</span>
                   <span className="required">*</span>
                 </div>
                 <CInputGroup>
                   <CInputGroupText className="input-icon">
-                    <CIcon icon={cilLocationPin} />
+                    <CIcon icon={cilUser} />
                   </CInputGroupText>
                   <CFormSelect 
-                    name="branch" 
-                    value={formData.branch} 
+                    name="type" 
+                    value={formData.type} 
                     onChange={handleChange}
                   >
                     <option value="">-Select-</option>
-                    {branches.map((branch) => (
-                      <option key={branch._id} value={branch._id}>
-                        {branch.name}
-                      </option>
-                    ))}
+                    <option value="branch">Branch</option>
+                    <option value="subdealer">Subdealer</option>
                   </CFormSelect>
                 </CInputGroup>
-                {errors.branch && <p className="error">{errors.branch}</p>}
+                {errors.type && <p className="error">{errors.type}</p>}
               </div>
+              
+              {formData.type === 'branch' && (
+                <div className="input-box">
+                  <div className="details-container">
+                    <span className="details">Branch</span>
+                    <span className="required">*</span>
+                  </div>
+                  <CInputGroup>
+                    <CInputGroupText className="input-icon">
+                      <CIcon icon={cilLocationPin} />
+                    </CInputGroupText>
+                    <CFormSelect 
+                      name="branch" 
+                      value={formData.branch} 
+                      onChange={handleChange}
+                    >
+                      <option value="">-Select-</option>
+                      {branches.map((branch) => (
+                        <option key={branch._id} value={branch._id}>
+                          {branch.name}
+                        </option>
+                      ))}
+                    </CFormSelect>
+                  </CInputGroup>
+                  {errors.branch && <p className="error">{errors.branch}</p>}
+                </div>
+              )}
+              
+              {formData.type === 'subdealer' && (
+                <div className="input-box">
+                  <div className="details-container">
+                    <span className="details">Subdealer</span>
+                    <span className="required">*</span>
+                  </div>
+                  <CInputGroup>
+                    <CInputGroupText className="input-icon">
+                      <CIcon icon={cilLocationPin} />
+                    </CInputGroupText>
+                    <CFormSelect 
+                      name="subdealer" 
+                      value={formData.subdealer} 
+                      onChange={handleChange}
+                    >
+                      <option value="">-Select-</option>
+                      {subdealers.map((subdealer) => (
+                        <option key={subdealer._id} value={subdealer._id}>
+                          {subdealer.name}
+                        </option>
+                      ))}
+                    </CFormSelect>
+                  </CInputGroup>
+                  {errors.subdealer && <p className="error">{errors.subdealer}</p>}
+                </div>
+              )}
               
               <div className="input-box">
                 <div className="details-container">
@@ -1012,6 +1110,3 @@ function AddUser() {
 }
 
 export default AddUser;
-
-
-
