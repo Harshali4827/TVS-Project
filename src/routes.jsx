@@ -709,10 +709,20 @@ export const routes = [
         path:'/update-subdealer-booking/:id',
         element: lazy(() => import('./views/subdealer/booking/NewBooking'))
       },
-         {
+      {
         exact:'true',
         path:'/subdealer-all-bookings',
         element: lazy(() => import('./views/subdealer/booking/AllBooking'))
+      },
+      {
+        exact: 'true',
+        path: '/subdealer-account/receipt',
+        element: lazy(() => import('./views/subdealer/accounts/SubdealerReceipts'))
+      },
+      {
+        exact: 'true',
+        path: '/subdealer-account/add-balance',
+        element: lazy(() => import('./views/subdealer/accounts/AddBalance'))
       },
       {
         path: '*',

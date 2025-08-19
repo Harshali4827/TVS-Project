@@ -165,12 +165,12 @@ const menuItems = {
               type: 'item',
               url: '/debit-note'
             },
-            {
-              id: 'pending-receipts',
-              title: 'Pending Receipts',
-              type: 'item',
-              url: '/account/pending-receipt'
-            },
+            // {
+            //   id: 'pending-receipts',
+            //   title: 'Pending Receipts',
+            //   type: 'item',
+            //   url: '/account/pending-receipt'
+            // },
             {
               id: 'all-receipts',
               title: 'All Receipts',
@@ -547,6 +547,33 @@ const menuItems = {
               type: 'item',
               url: '/pending-updates'
             }
+          ]
+        },
+         {
+          id: 'subdealer-account',
+          title: 'Account',
+          type: 'collapse',
+          icon: 'fas fa-university',
+
+          children: [
+            // {
+            //   id: 'account-dashboard',
+            //   title: 'PF/NPF Dashboard',
+            //   type: 'item',
+            //   url: '/account-dashboard'
+            // },
+             {
+              id: 'add-balance',
+              title: 'Add Balance',
+              type: 'item',
+              url: '/subdealer-account/add-balance'
+            },
+            {
+              id: 'receipts',
+              title: 'Receipts',
+              type: 'item',
+              url: '/subdealer-account/receipt'
+            },
           ]
         },
        

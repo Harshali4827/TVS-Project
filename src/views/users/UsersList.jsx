@@ -164,7 +164,7 @@ const UsersList = () => {
                     <td>{user.discount || '0'}</td>
                     <td>{formatDate(user.lastLogin)}</td>
                     <td>
-                      {user.status}
+                      <span className={`status-badge ${user.status.toLowerCase()} user-status`}>{user.status}</span>
                     </td>
                     <td>
                       <button className="action-button" onClick={(event) => handleClick(event, user.id)}>

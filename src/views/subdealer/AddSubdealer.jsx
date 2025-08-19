@@ -78,7 +78,7 @@ function AddSubdealer() {
   };
   return (
     <div>
-      <h4>{id ? 'Edit' : 'Add'} Insurance Provider</h4>
+      <h4>{id ? 'Edit' : 'Add'} Subdealer</h4>
       <div className="form-container">
         <div className="page-header">
           <form onSubmit={handleSubmit}>

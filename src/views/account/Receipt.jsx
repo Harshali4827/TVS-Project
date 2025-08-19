@@ -303,7 +303,10 @@ function Receipt() {
   const fetchData = async () => {
     try {
       const response = await axiosInstance.get(`/bookings`);
-      const bookings = response.data.data.bookings;
+      // const bookings = response.data.data.bookings;
+       const bookings = response.data.data.bookings.filter(
+        booking => booking.bookingType === "BRANCH"
+      );
       setAllBookings(bookings);
 
       const pendingBookings = bookings.filter((booking) => booking.balanceAmount !== 0);

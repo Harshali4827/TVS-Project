@@ -237,6 +237,44 @@ const ViewBooking = ({ open, onClose, booking, refreshData }) => {
     );
   };
 
+const renderClaimDocuments = () => {
+  if (!booking.claimDetails?.hasClaim) {
+    return null;
+  }
+
+  return (
+    <CCard className="booking-section">
+      <CCardHeader>
+        <h5>Claim Details</h5>
+      </CCardHeader>
+      <CCardBody>
+        <div className="detail-row">
+          <span className="detail-label">Claim Amount:</span>
+          <span className="detail-value">₹{booking.claimDetails.priceClaim}</span>
+        </div>
+        <div className="detail-row">
+          <span className="detail-label">Description:</span>
+          <span className="detail-value">{booking.claimDetails.description}</span>
+        </div>
+        <div className="detail-row">
+          <span className="detail-label">Documents:</span>
+          <div className="documents-grid">
+            {booking.claimDetails.documents.map((doc, index) => (
+              <div key={index} className="document-item">
+                <img 
+                  src={`${config.baseURL}/uploads/${doc.path}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="document-link"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </CCardBody>
+    </CCard>
+  );
+};
   return (
     <>
       {open && <div className="modal-overlay" onClick={onClose} />}
@@ -424,41 +462,15 @@ const ViewBooking = ({ open, onClose, booking, refreshData }) => {
                       )}
                     </CCardBody>
                   </CCard>
+
+                   {/* Price Components */}
                   <CCard className="booking-section">
                     <CCardHeader>
                       <h5>
-                        <FaExchangeAlt /> Exchange Information
+                        <FaFileInvoiceDollar /> Price Components
                       </h5>
                     </CCardHeader>
-                    <CCardBody>
-                      <div className="detail-row">
-                        <span className="detail-label">Exchange:</span>
-                        <span className="detail-value">{booking.exchange ? 'Yes' : 'No'}</span>
-                      </div>
-
-                      {booking.exchange && (
-                        <>
-                          <div className="detail-row">
-                            <span className="detail-label">Vehicle Number:</span>
-                            <span className="detail-value">{booking.exchangeDetails.vehicleNumber}</span>
-                          </div>
-                          <div className="detail-row">
-                            <span className="detail-label">Chassis Number:</span>
-                            <span className="detail-value">{booking.exchangeDetails.chassisNumber}</span>
-                          </div>
-                          <div className="detail-row">
-                            <span className="detail-label">Price:</span>
-                            <span className="detail-value">₹{booking.exchangeDetails.price}</span>
-                          </div>
-                          {booking.exchangeDetails.broker && (
-                            <div className="detail-row">
-                              <span className="detail-label">Broker:</span>
-                              <span className="detail-value">{booking.exchangeDetails.broker.name}</span>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </CCardBody>
+                    <CCardBody>{renderPriceComponents()}</CCardBody>
                   </CCard>
                 </div>
                 <div className="details-column">
@@ -532,14 +544,41 @@ const ViewBooking = ({ open, onClose, booking, refreshData }) => {
                     </CCardBody>
                   </CCard>
 
-                  {/* Price Components */}
                   <CCard className="booking-section">
                     <CCardHeader>
                       <h5>
-                        <FaFileInvoiceDollar /> Price Components
+                        <FaExchangeAlt /> Exchange Information
                       </h5>
                     </CCardHeader>
-                    <CCardBody>{renderPriceComponents()}</CCardBody>
+                    <CCardBody>
+                      <div className="detail-row">
+                        <span className="detail-label">Exchange:</span>
+                        <span className="detail-value">{booking.exchange ? 'Yes' : 'No'}</span>
+                      </div>
+
+                      {booking.exchange && (
+                        <>
+                          <div className="detail-row">
+                            <span className="detail-label">Vehicle Number:</span>
+                            <span className="detail-value">{booking.exchangeDetails.vehicleNumber}</span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">Chassis Number:</span>
+                            <span className="detail-value">{booking.exchangeDetails.chassisNumber}</span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">Price:</span>
+                            <span className="detail-value">₹{booking.exchangeDetails.price}</span>
+                          </div>
+                          {booking.exchangeDetails.broker && (
+                            <div className="detail-row">
+                              <span className="detail-label">Broker:</span>
+                              <span className="detail-value">{booking.exchangeDetails.broker.name}</span>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </CCardBody>
                   </CCard>
                 </div>
               </div>
@@ -551,6 +590,7 @@ const ViewBooking = ({ open, onClose, booking, refreshData }) => {
                 </CCardHeader>
                 <CCardBody>{renderAccessories()}</CCardBody>
               </CCard>
+              {renderClaimDocuments()}
             </div>
           )}
         </CModalBody>

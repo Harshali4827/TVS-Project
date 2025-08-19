@@ -324,14 +324,6 @@ const ExchangeLedger = () => {
                         <button style={{ marginLeft: '4px' }} className="action-button" onClick={() => handleViewLedger(ledger)}>
                           View
                         </button>
-
-                         {/* <button className="action-button" onClick={(event) => handleClick(event, ledger.id)}>
-                            Action
-                          </button>
-                           <Menu id={`action-menu-${ledger.id}`} anchorEl={anchorEl} open={menuId === ledger.id} onClose={handleClose}>
-                            <MenuItem onClick={() => handleAddClick(ledger)}>Add</MenuItem>
-                            <MenuItem onClick={() => handleViewLedger(ledger)}>View</MenuItem>
-                            </Menu> */}
                       </td>
                     </tr>
                   ))
