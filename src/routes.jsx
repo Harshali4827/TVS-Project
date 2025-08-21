@@ -725,6 +725,46 @@ export const routes = [
         element: lazy(() => import('./views/subdealer/accounts/AddBalance'))
       },
       {
+        exact: 'true',
+        path: '/subdealer-account/onaccount-balance',
+        element: lazy(() => import('./views/subdealer/accounts/OnAccountBalance'))
+      },
+      {
+        exact: 'true',
+        path: '/subdealer-account/add-amount',
+        element: lazy(() => import('./views/subdealer/accounts/AddAmount'))
+      },
+       {
+        exact: 'true',
+        path: '/subdealer-ledger',
+        element: lazy(() => import('./views/subdealer/accounts/SubdealerLedger'))
+      },
+       {
+        exact: 'true',
+        path: '/subdealer-commission',
+        element: lazy(() => import('./views/subdealer/commission/CommissionList'))
+      },
+       {
+        exact: 'true',
+        path: '/subdealer/add-commission',
+        element: lazy(() => import('./views/subdealer/commission/AddCommission'))
+      },
+      {
+        exact: 'true',
+        path: '/subdealer/customer-ledger',
+        element: lazy(() => import('./views/subdealer/accounts/CustomerLedger'))
+      },
+      {
+        exact: 'true',
+        path: '/subdealer/summary',
+        element: lazy(() => import('./views/subdealer/accounts/Summary'))
+      },
+      {
+        exact: 'true',
+        path: '/subdealer/calculate-commission',
+        element: lazy(() => import('./views/subdealer/commission/CalculateCommission'))
+      },
+      {
         path: '*',
         exact: 'true',
         element: () => <Navigate to={BASE_URL} />

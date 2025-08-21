@@ -503,6 +503,18 @@ const menuItems = {
               type: 'item',
               url: '/subdealer-list'
             },
+            {
+              id: 'commision',
+              title: 'Subdealer Commision',
+              type: 'item',
+              url: '/subdealer-commission'
+            },
+            {
+              id: 'commision',
+              title: 'Calculate Commision',
+              type: 'item',
+              url: '/subdealer/calculate-commission'
+            }
           ]
         },
         {
@@ -569,11 +581,35 @@ const menuItems = {
               url: '/subdealer-account/add-balance'
             },
             {
+              id: 'onaccount-balance',
+              title: 'OnAccount Balance',
+              type: 'item',
+              url: '/subdealer-account/onaccount-balance'
+            },
+            {
               id: 'receipts',
-              title: 'Receipts',
+              title: 'Finance Payment',
               type: 'item',
               url: '/subdealer-account/receipt'
             },
+             {
+              id:'subdealer ledger',
+              title: "Subdealer Ledger",
+              type: 'item',
+              url: '/subdealer-ledger'
+            },
+             {
+              id:'sub-ledger',
+              title: "Customer Ledger",
+              type: 'item',
+              url: '/subdealer/customer-ledger'
+            },
+             {
+              id:'summary',
+              title: "Summary",
+              type: 'item',
+              url: '/subdealer/summary'
+            }
           ]
         },
        

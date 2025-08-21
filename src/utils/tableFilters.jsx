@@ -127,10 +127,10 @@ export const getDefaultSearchFields = (tableType) => {
     ],
     accessories: ['name', 'description', 'price', 'part_number'],
     inward: [
-      'locationDetails.name',
+      'unloadLocation.name',
       'type',
-      'model',
-      'colorDetails.name',
+      'modelName',
+      'color.name',
       'batteryNumber',
       'keyNumber',
       'chassisNumber',

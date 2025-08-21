@@ -30,18 +30,3 @@
 .bill-text {
   font-size: 0.9rem;
 }
-
-/* Action button styles */
-.action-button {
-  background-color: var(--cui-primary);
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-
-.action-button:hover {
-  background-color: var(--cui-primary-dark);
-}

@@ -234,7 +234,7 @@ const AddDebitNote = ({ show, onClose, bookingData }) => {
                 <div><strong>Customer Phone:</strong> ${ledgerData.customerDetails?.phone || ''}</div>
                 <div><strong>Chassis No:</strong> ${ledgerData.vehicleDetails?.chassisNo || ''}</div>
                 <div><strong>Engine No:</strong> ${ledgerData.vehicleDetails?.engineNo || ''}</div>
-                <div><strong>Finance Name:</strong> ${ledgerData.financeDetails?.financer || '---Select Financer Name---'}</div>
+                <div><strong>Finance Name:</strong> ${ledgerData.financeDetails?.financer || ''}</div>
                 <div><strong>Sale Executive:</strong> ${ledgerData.salesExecutive || ''}</div>
               </div>
               

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../../css/invoice.css';
 import { CFormInput, CInputGroup, CInputGroupText, CButton, CNav, CNavItem, CNavLink, CTabContent, CTabPane } from '@coreui/react';
 import CIcon from '@coreui/icons-react';
-import { cilCarAlt, cilDollar, cilMoney, cilPrint, cilReload } from '@coreui/icons';
+import { cilCarAlt, cilDollar, cilPrint, cilReload } from '@coreui/icons';
 import axiosInstance from 'axiosInstance';
 
 function Invoice() {

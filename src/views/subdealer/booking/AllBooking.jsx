@@ -389,6 +389,7 @@
 
 
 import '../../../css/table.css';
+import '../../../css/invoice.css';
 import {
   React,
   useState,
@@ -409,10 +410,9 @@ import { cilCloudUpload, cilPrint } from '@coreui/icons';
 import config from 'config';
 import KYCView from 'views/sales/KYCView';
 import FinanceView from 'views/sales/FinanceView';
-import ChassisNumberModal from 'views/sales/ChassisModel';
 import ViewBooking from 'views/sales/BookingDetails';
 import SubDealerChassisNumberModal from './SubdealerChassisModel';
-import { CBadge, CNav, CNavItem, CNavLink, CTabContent, CTabPane } from '@coreui/react';
+import { CNav, CNavItem, CNavLink, CTabContent, CTabPane } from '@coreui/react';
 
 const AllBooking = () => {
   const [anchorEl, setAnchorEl] = useState(null);

@@ -3,19 +3,15 @@ import {
   React,
   useState,
   useEffect,
-  Link,
   Menu,
   MenuItem,
   SearchOutlinedIcon,
   getDefaultSearchFields,
   useTableFilter,
   usePagination,
-  confirmDelete,
   showError,
   showSuccess,
-  axiosInstance,
-  FaCheckCircle,
-  FaTimesCircle
+  axiosInstance
 } from 'utils/tableImports';
 import PendingUpdateDetailsModal from './ViewPendingUpdates';
 

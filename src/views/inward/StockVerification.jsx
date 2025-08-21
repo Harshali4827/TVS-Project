@@ -196,7 +196,7 @@ function StockVerification() {
                 <input
                   type="text"
                   placeholder="Search.."
-                  onChange={(e) => handlePendingFilter(e.target.value, getDefaultSearchFields('receipts'))}
+                  onChange={(e) => handlePendingFilter(e.target.value, getDefaultSearchFields('inward'))}
                 />
                 <SearchOutlinedIcon />
               </div>
@@ -268,7 +268,7 @@ function StockVerification() {
             <h5>VERIFIED STOCK</h5>
             <div className="table-header">
               <div className="search-icon-data">
-                <input type="text" placeholder="Search.." onChange={(e) => handleApprovedFilter(e.target.value, ['branchName'])} />
+                <input type="text" placeholder="Search.." onChange={(e) => handleApprovedFilter(e.target.value,  getDefaultSearchFields('inward'))} />
                 <SearchOutlinedIcon />
               </div>
             </div>

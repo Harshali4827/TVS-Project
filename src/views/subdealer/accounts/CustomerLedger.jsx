@@ -1,20 +1,24 @@
-import '../../css/table.css';
+import '../../../css/table.css';
 import {
   React,
   useState,
   useEffect,
+  Link,
+  Menu,
+  MenuItem,
   SearchOutlinedIcon,
   getDefaultSearchFields,
   useTableFilter,
   usePagination,
   axiosInstance
 } from 'utils/tableImports';
-import tvsLogo from '../../assets/images/logo.png';
+import tvsLogo from '../../../assets/images/logo.png';
 import config from 'config';
-const ViewLedgers = () => {
+
+const CustomerLedger = () => {
   const { data, setData, filteredData, setFilteredData, handleFilter } = useTableFilter([]);
   const { currentRecords, PaginationOptions } = usePagination(filteredData);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null); 
 
   useEffect(() => {
     fetchData();
@@ -23,16 +27,16 @@ const ViewLedgers = () => {
   const fetchData = async () => {
     try {
       const response = await axiosInstance.get(`/bookings`);
-
-       const branchBookings = response.data.data.bookings.filter(
-        booking => booking.bookingType === 'BRANCH'
+      const subdealerBookings = response.data.data.bookings.filter(
+        booking => booking.bookingType === "SUBDEALER" && booking.payment.type === "FINANCE"
       );
-      setData(branchBookings);
-      setFilteredData(branchBookings);
+      setData(subdealerBookings);
+      setFilteredData(subdealerBookings);
     } catch (error) {
       console.log('Error fetching data', error);
     }
   };
+
   const handleViewLedger = async (booking) => {
     try {
       const res = await axiosInstance.get(`/ledger/report/${booking._id}`);
@@ -183,7 +187,6 @@ const ViewLedgers = () => {
                   <div><strong>Chassis No:</strong> ${ledgerData.vehicleDetails?.chassisNo || ''}</div>
                   <div><strong>Engine No:</strong> ${ledgerData.vehicleDetails?.engineNo || ''}</div>
                   <div><strong>Finance Name:</strong> ${ledgerData.financeDetails?.financer || ''}</div>
-                  <div><strong>Sale Executive:</strong> ${ledgerData.salesExecutive || ''}</div>
                 </div>
                 
                 <table>
@@ -315,4 +318,4 @@ const ViewLedgers = () => {
   );
 };
 
-export default ViewLedgers;
+export default CustomerLedger;

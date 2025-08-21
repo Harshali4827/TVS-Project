@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../../../css/invoice.css'
-import { CNav, CNavItem, CNavLink, CTabContent, CTabPane } from '@coreui/react';
+import {CNav, CNavItem, CNavLink, CTabContent, CTabPane } from '@coreui/react';
 import { axiosInstance, getDefaultSearchFields, SearchOutlinedIcon, useTableFilter } from 'utils/tableImports';
 import '../../../css/table.css';
 import SubdealerReceiptModal from './SubdealerReceiptModel';
@@ -9,9 +9,8 @@ function SubdealerReceipts() {
   const [activeTab, setActiveTab] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
-  const [allBookings, setAllBookings] = useState([]); // Store all bookings here
+  const [allBookings, setAllBookings] = useState([]); 
 
-  // For Customer tab (balanceAmount !== 0)
   const {
     data: pendingBookingsData,
     setData: setPendingBookingsData,
@@ -46,7 +45,7 @@ function SubdealerReceipts() {
       const response = await axiosInstance.get(`/bookings`);
       // const bookings = response.data.data.bookings;
        const bookings = response.data.data.bookings.filter(
-        booking => booking.bookingType === "SUBDEALER"
+        booking => booking.bookingType === "SUBDEALER" && booking.payment.type === "FINANCE"
       );
       setAllBookings(bookings);
 
@@ -80,35 +79,25 @@ function SubdealerReceipts() {
     setSelectedBooking(booking);
     setShowModal(true);
   };
-
+  
   return (
     <div className="container-table">
       <CNav variant="tabs">
         <CNavItem>
           <CNavLink active={activeTab === 0} onClick={() => setActiveTab(0)}>
-            Customer
+           Pending Payment
           </CNavLink>
         </CNavItem>
         <CNavItem>
-          <CNavLink active={activeTab === 1} onClick={() => setActiveTab(1)}>
-            Sub Dealer
-          </CNavLink>
-        </CNavItem>
-        <CNavItem>
-          <CNavLink active={activeTab === 2} onClick={() => setActiveTab(2)}>
+          <CNavLink active={activeTab === 1} onClick={() => setActiveTab(1)}> {/* Fixed this line */}
             Complete Payment
-          </CNavLink>
-        </CNavItem>
-        <CNavItem>
-          <CNavLink active={activeTab === 3} onClick={() => setActiveTab(3)}>
-            Pending List
           </CNavLink>
         </CNavItem>
       </CNav>
 
       <CTabContent>
         <CTabPane visible={activeTab === 0} className="p-3">
-          <h5>Customer</h5>
+          <h5>Pending Finance Payment</h5>
           <div className="table-header">
             <div className="search-icon-data">
               <input
@@ -133,7 +122,7 @@ function SubdealerReceipts() {
                     <th>Total</th>
                     <th>Received</th>
                     <th>Balance</th>
-                    {/* <th>Action</th> */}
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -155,11 +144,11 @@ function SubdealerReceipts() {
                         <td>{booking.discountedAmount || '0'}</td>
                         <td>{booking.receivedAmount || '0'}</td>
                         <td>{booking.balanceAmount || '0'}</td>
-                        {/* <td>
+                        <td>
                           <button className="action-button" onClick={() => handleAddClick(booking)}>
                             Add
                           </button>
-                        </td> */}
+                        </td>
                       </tr>
                     ))
                   )}
@@ -170,56 +159,6 @@ function SubdealerReceipts() {
           </div>
         </CTabPane>
         <CTabPane visible={activeTab === 1} className="p-3">
-          <h5>Sub Dealer</h5>
-          <div className="table-header">
-            <div className="search-icon-data">
-              <input type="text" placeholder="Search.." onChange={(e) => handleLedgerFilter(e.target.value, ['branchName'])} />
-              <SearchOutlinedIcon />
-            </div>
-          </div>
-          <div className="table-responsive">
-            <div className="table-wrapper">
-              <table className="responsive-table" style={{ overflow: 'auto' }}>
-                <thead className="table-header-fixed">
-                  <tr>
-                    <th>Sr.no</th>
-                    <th>Location</th>
-                    <th>Total</th>
-                    <th>Received</th>
-                    <th>Balance</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredLedger.length === 0 ? (
-                    <tr>
-                      <td colSpan="6" style={{ color: 'red' }}>
-                        No booking available
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredLedger.map((booking, index) => (
-                      <tr key={index}>
-                        <td>{index + 1}</td>
-                        <td>{booking.branchName}</td>
-                        <td>{booking.totalDebit}</td>
-                        <td>{booking.totalCredit}</td>
-                        <td>{booking.finalBalance}</td>
-                        <td>
-                          <button className="action-button" onClick={() => handleAddClick(booking)}>
-                            Add
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </CTabPane>
-
-        <CTabPane visible={activeTab === 2} className="p-3">
           <h5>Complete Payment</h5>
           <div className="table-header">
             <div className="search-icon-data">
@@ -273,10 +212,6 @@ function SubdealerReceipts() {
               </table>
             </div>
           </div>
-        </CTabPane>
-
-        <CTabPane visible={activeTab === 3} className="p-3">
-          <h5>Pending List</h5>
         </CTabPane>
       </CTabContent>
     </div>

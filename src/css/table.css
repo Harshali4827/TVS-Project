@@ -414,3 +414,84 @@
 .upload-kyc-btn:hover {
   background-color: #153291;
 }
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.import-csv-btn,
+.export-csv-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.import-csv-btn {
+  background-color: #6c757d;
+  color: white;
+}
+
+.export-csv-btn {
+  background-color: #dc4226;
+  color: white;
+}
+
+.import-csv-btn:hover {
+  background-color: #5a6268;
+}
+
+.export-csv-btn:hover {
+  background-color: #c53218;
+}
+
+/***************************  Commission range filter  **************************/
+
+.filter-btn, .clear-filter-btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  /* margin-right: 5px; */
+}
+
+.filter-btn {
+  background-color: #6c757d;
+  color: white;
+}
+
+.clear-filter-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.filter-btn:hover {
+  background-color: #5a6268;
+}
+
+.clear-filter-btn:hover {
+  background-color: #c82333;
+}
+
+details summary {
+  cursor: pointer;
+  padding: 5px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+details div {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+.no-filter-message {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #666;
+}

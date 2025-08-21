@@ -26,8 +26,11 @@ const DebitNote = () => {
   const fetchData = async () => {
     try {
       const response = await axiosInstance.get(`/bookings`);
-      setData(response.data.data.bookings);
-      setFilteredData(response.data.data.bookings);
+      const branchBookings = response.data.data.bookings.filter(
+        booking => booking.bookingType === 'BRANCH'
+      );
+      setData(branchBookings);
+      setFilteredData(branchBookings);
     } catch (error) {
       console.log('Error fetching data', error);
     }
@@ -87,7 +90,7 @@ const DebitNote = () => {
                     <td>{booking.balanceAmount?.toLocaleString('en-IN') || '0'}</td>
                     <td>
                       <button className="action-button" onClick={() => handleAddClick(booking)}>
-                        View
+                       Add
                       </button>
                     </td>
                   </tr>
