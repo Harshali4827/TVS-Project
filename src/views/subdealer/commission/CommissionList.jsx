@@ -106,44 +106,49 @@ const CommissionList = () => {
   };
 
   const fetchDateRangeCommission = async () => {
-    if (!dateRangeSubdealer) {
-      showError('Please select a subdealer');
-      return;
+  if (!dateRangeSubdealer) {
+    showError('Please select a subdealer');
+    return;
+  }
+  
+  if (!fromDate) {
+    showError('Please select a from date');
+    return;
+  }
+  
+  setLoadingDateRange(true);
+  
+  try {
+    const requestBody = {
+      fromDate: fromDate
+    };
+    
+    if (toDate) {
+      requestBody.toDate = toDate;
     }
     
-    if (!fromDate) {
-      showError('Please select a from date');
-      return;
-    }
+    const response = await axiosInstance.put(
+      `/commission-master/${dateRangeSubdealer}/date-range-commission`,
+      requestBody
+    );
     
-    setLoadingDateRange(true);
-    
-    try {
-      const requestBody = {
-        fromDate: fromDate
-      };
-      
-      if (toDate) {
-        requestBody.toDate = toDate;
-      }
-      
-      const response = await axiosInstance.put(
-        `/commission-master/${dateRangeSubdealer}/date-range-commission`,
-        requestBody
-      );
-      
-      if (response.data.status === 'success') {
-        setDateRangeData(response.data.data);
-      } else {
-        showError('Failed to fetch date range commission data');
-      }
-    } catch (error) {
-      console.log('Error fetching date range commission data', error);
-      showError('Failed to load date range commission details');
-    } finally {
-      setLoadingDateRange(false);
+    if (response.data.status === 'success') {
+      showSuccess('Commission applied successfully for the selected date range');
+      setDateRangeModalVisible(false);
+      setDateRangeSubdealer('');
+      setFromDate('');
+      setToDate('');
+      setDateRangeData(null); // Clear any previous data
+    } else {
+      showError('Failed to apply commission for date range');
     }
-  };
+  } catch (error) {
+    console.log('Error applying date range commission', error);
+    showError('Failed to apply commission for date range');
+  } finally {
+    setLoadingDateRange(false);
+  }
+};
 
   const handleApplyFilter = () => {
     if (!selectedSubdealer) {
@@ -474,142 +479,91 @@ const CommissionList = () => {
       </CModal>
 
       {/* Date Range Commission Modal */}
-      <CModal 
-        visible={dateRangeModalVisible} 
-        onClose={() => {
-          setDateRangeModalVisible(false);
-          setDateRangeData(null);
-          setDateRangeSubdealer('');
-          setFromDate('');
-          setToDate('');
-        }}
-        size="xs"
+      {/* Date Range Commission Modal */}
+<CModal 
+  visible={dateRangeModalVisible} 
+  onClose={() => {
+    setDateRangeModalVisible(false);
+    setDateRangeData(null);
+    setDateRangeSubdealer('');
+    setFromDate('');
+    setToDate('');
+  }}
+  size="xs"
+>
+  <CModalHeader onClose={() => {
+    setDateRangeModalVisible(false);
+    setDateRangeData(null);
+    setDateRangeSubdealer('');
+    setFromDate('');
+    setToDate('');
+  }}>
+    <CModalTitle>Apply Date Range Commission</CModalTitle>
+  </CModalHeader>
+  <CModalBody>
+    <div className="mb-3">
+      <CFormLabel htmlFor="dateRangeSubdealerSelect">Select Subdealer</CFormLabel>
+      <CFormSelect
+        id="dateRangeSubdealerSelect"
+        value={dateRangeSubdealer}
+        onChange={(e) => setDateRangeSubdealer(e.target.value)}
       >
-        <CModalHeader onClose={() => {
-          setDateRangeModalVisible(false);
-          setDateRangeData(null);
-          setDateRangeSubdealer('');
-          setFromDate('');
-          setToDate('');
-        }}>
-          <CModalTitle>Date Range Commission Validation</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <div className="mb-3">
-            <CFormLabel htmlFor="dateRangeSubdealerSelect">Select Subdealer</CFormLabel>
-            <CFormSelect
-              id="dateRangeSubdealerSelect"
-              value={dateRangeSubdealer}
-              onChange={(e) => setDateRangeSubdealer(e.target.value)}
-            >
-              <option value="">Select Subdealer</option>
-              {subdealers.map((subdealer) => (
-                <option key={subdealer._id} value={subdealer._id}>
-                  {subdealer.name || subdealer.companyName || subdealer.email}
-                </option>
-              ))}
-            </CFormSelect>
-          </div>
-          
-          <CRow>
-            <CCol md={6}>
-              <div className="mb-3">
-                <CFormLabel htmlFor="fromDate">From Date *</CFormLabel>
-                <CFormInput
-                  type="date"
-                  id="fromDate"
-                  value={fromDate}
-                  onChange={(e) => setFromDate(e.target.value)}
-                />
-              </div>
-            </CCol>
-            <CCol md={6}>
-              <div className="mb-3">
-                <CFormLabel htmlFor="toDate">To Date (Optional)</CFormLabel>
-                <CFormInput
-                  type="date"
-                  id="toDate"
-                  value={toDate}
-                  onChange={(e) => setToDate(e.target.value)}
-                />
-              </div>
-            </CCol>
-          </CRow>
-          
-          {loadingDateRange && (
-            <div className="text-center">
-              <CSpinner />
-              <p>Loading commission data...</p>
-            </div>
-          )}
-          
-          {dateRangeData && (
-            <div className="mt-4">
-              <h6>Commission Summary</h6>
-              <CRow className="mb-3">
-                <CCol md={6}>
-                  <div className="p-3 bg-light rounded">
-                    <strong>Total Bookings:</strong> {dateRangeData.total_bookings || 0}
-                  </div>
-                </CCol>
-                <CCol md={6}>
-                  <div className="p-3 bg-light rounded">
-                    <strong>Total Commission:</strong> {formatCurrency(dateRangeData.total_commission || 0)}
-                  </div>
-                </CCol>
-              </CRow>
-              
-              {dateRangeData.booking_commissions && dateRangeData.booking_commissions.length > 0 && (
-                <>
-                  <h6>Booking Details</h6>
-                  <div className="table-responsive" style={{maxHeight: '300px', overflow: 'auto'}}>
-                    <CTable striped responsive size="sm">
-                      <CTableHead>
-                        <CTableRow>
-                          <CTableHeaderCell>Date</CTableHeaderCell>
-                          <CTableHeaderCell>Booking No.</CTableHeaderCell>
-                          <CTableHeaderCell>Customer</CTableHeaderCell>
-                          <CTableHeaderCell>Model</CTableHeaderCell>
-                          <CTableHeaderCell className="text-right">Commission</CTableHeaderCell>
-                        </CTableRow>
-                      </CTableHead>
-                      <CTableBody>
-                        {dateRangeData.booking_commissions.map((booking, index) => (
-                          <CTableRow key={index}>
-                            <CTableDataCell>
-                              {new Date(booking.booking_date).toLocaleDateString()}
-                            </CTableDataCell>
-                            <CTableDataCell>{booking.booking_number}</CTableDataCell>
-                            <CTableDataCell>{booking.customer_name}</CTableDataCell>
-                            <CTableDataCell>{booking.model}</CTableDataCell>
-                            <CTableDataCell className="text-right">
-                              {formatCurrency(booking.total_commission)}
-                            </CTableDataCell>
-                          </CTableRow>
-                        ))}
-                      </CTableBody>
-                    </CTable>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-        </CModalBody>
-        <CModalFooter>
-          <CButton color="secondary" onClick={() => {
-            setDateRangeModalVisible(false);
-            setDateRangeData(null);
-            setDateRangeSubdealer('');
-            setFromDate('');
-            setToDate('');
-          }}>
-            Close
-          </CButton>
-          <CButton color="primary" onClick={fetchDateRangeCommission} disabled={loadingDateRange}>
-            Validate Commission
-          </CButton>
-        </CModalFooter>
-      </CModal>
+        <option value="">Select Subdealer</option>
+        {subdealers.map((subdealer) => (
+          <option key={subdealer._id} value={subdealer._id}>
+            {subdealer.name || subdealer.companyName || subdealer.email}
+          </option>
+        ))}
+      </CFormSelect>
+    </div>
+    
+    <CRow>
+      <CCol md={6}>
+        <div className="mb-3">
+          <CFormLabel htmlFor="fromDate">From Date *</CFormLabel>
+          <CFormInput
+            type="date"
+            id="fromDate"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+          />
+        </div>
+      </CCol>
+      <CCol md={6}>
+        <div className="mb-3">
+          <CFormLabel htmlFor="toDate">To Date (Optional)</CFormLabel>
+          <CFormInput
+            type="date"
+            id="toDate"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+          />
+        </div>
+      </CCol>
+    </CRow>
+    
+    {loadingDateRange && (
+      <div className="text-center">
+        <CSpinner />
+        <p>Applying commission...</p>
+      </div>
+    )}
+  </CModalBody>
+  <CModalFooter>
+    <CButton color="secondary" onClick={() => {
+      setDateRangeModalVisible(false);
+      setDateRangeData(null);
+      setDateRangeSubdealer('');
+      setFromDate('');
+      setToDate('');
+    }}>
+      Close
+    </CButton>
+    <CButton color="primary" onClick={fetchDateRangeCommission} disabled={loadingDateRange}>
+      Apply Commission
+    </CButton>
+  </CModalFooter>
+</CModal>
 
       <CModal visible={exportModalVisible} onClose={() => setExportModalVisible(false)}>
         <CModalHeader onClose={() => setExportModalVisible(false)}>

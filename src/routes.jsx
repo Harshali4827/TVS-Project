@@ -765,6 +765,11 @@ export const routes = [
         element: lazy(() => import('./views/subdealer/commission/CalculateCommission'))
       },
       {
+        exact: 'true',
+        path: '/subdealer/payment',
+        element: lazy(() => import('./views/subdealer/accounts/SubdealerPayment'))
+      },
+      {
         path: '*',
         exact: 'true',
         element: () => <Navigate to={BASE_URL} />

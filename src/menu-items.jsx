@@ -609,6 +609,12 @@ const menuItems = {
               title: "Summary",
               type: 'item',
               url: '/subdealer/summary'
+            },
+            {
+              id:'subdealer payment',
+              title: "Subdealer Payment",
+              type: 'item',
+              url: '/subdealer/payment'
             }
           ]
         },
